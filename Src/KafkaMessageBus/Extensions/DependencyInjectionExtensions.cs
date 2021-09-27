@@ -1,35 +1,43 @@
-﻿using KafkaMessageBus.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
+﻿using KafkaMessageBus;
+using KafkaMessageBus.Abstractions;
+using System.Collections.Generic;
 
-namespace KafkaMessageBus.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtensions
     {
-        public static IServiceCollection AddKafkaMessageBus(this IServiceCollection services, Action<IKafkaMessageBusOptions> setupAction)
+        public static IServiceCollection AddSubscriptionMessageBus(this IServiceCollection services, IEnumerable<string> brokers, ISubscriptionsManager subsManager = null)
         { 
-            var options = GetDefaultKafkaMessageBusOptions(services);
-            setupAction(options);
+            var serviceProvider = services.BuildServiceProvider();
 
-            services.AddSingleton<IKafkaMessageBus, KafkaMessageBus>(sp => {
-                var messageBus = new KafkaMessageBus(sp, options);
+            services.AddSingleton<ISubscriptionMessageBus, SubscriptionMessageBus>(sp => {
+                var messageBus = new SubscriptionMessageBus(brokers, serviceProvider, subsManager);
                 return messageBus;
             });
 
             return services;
         }
 
-        private static IKafkaMessageBusOptions GetDefaultKafkaMessageBusOptions(IServiceCollection services)
-        {
+        public static IServiceCollection AddPublishMessageBus(this IServiceCollection services, string[] brokers)
+        { 
+            services.AddSingleton<IPublishMessageBus, PublishMessageBus>(sp => {
+                var messageBus = new PublishMessageBus(brokers);
+                return messageBus;
+            });
+
+            return services;
+        }
+
+        public static IServiceCollection AddMessageBus(this IServiceCollection services, IEnumerable<string> brokers, ISubscriptionsManager subsManager = null)
+        { 
             var serviceProvider = services.BuildServiceProvider();
 
-            var options = new DefaultOptions {
-                SubsManager = new DefaultSubscriptionsManager(),
-                Logger = serviceProvider.GetService<ILogger<KafkaMessageBus>>()
-            };
+            services.AddSingleton<IMessageBus, MessageBus>(sp => {
+                var messageBus = new MessageBus(brokers, serviceProvider, subsManager);
+                return messageBus;
+            });
 
-            return options;
+            return services;
         }
     }
 }

@@ -5,7 +5,7 @@ using KafkaMessageBus.Abstractions;
 
 namespace KafkaMessageBus
 {
-    public partial class DefaultSubscriptionsManager : IKafkaMessageBusSubscriptionsManager
+    public partial class DefaultSubscriptionsManager : ISubscriptionsManager
     {
         private readonly Dictionary<string, List<SubscriptionInfo>> _handlers;
         private readonly List<Type> _messageTypes;

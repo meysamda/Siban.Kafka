@@ -5,7 +5,7 @@ using KafkaMessageBus.Abstractions;
 
 namespace KafkaMessageBus
 {
-    public class DefaultSerializer<T> : IKafkaMessageBusSerializer<T>
+    public class DefaultSerializer<T> : IMessageBusSerializer<T>
     {
         public byte[] Serialize(T data, SerializationContext context)
         {

@@ -4,7 +4,7 @@
     where TMessage : IMessage
     {
         string Topic { get; set; }
-        IKafkaMessageBusSerializer<TMessage> ValueSerializer { get; set; }
-        IKafkaMessageBusSerializer<TKey> KeySerializer { get; set; }
+        IMessageBusSerializer<TMessage> ValueSerializer { get; set; }
+        IMessageBusSerializer<TKey> KeySerializer { get; set; }
     }
 }

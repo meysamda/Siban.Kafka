@@ -8,8 +8,8 @@ namespace KafkaMessageBus.Abstractions
     {
         IEnumerable<string> Topics { get; set; }
         string GroupId { get; set; }
-        IKafkaMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
-        IKafkaMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }
+        IMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
+        IMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }
         bool EnableAutoCommit { get; set; }
         AutoOffsetReset AutoOffsetReset { get; set; }
     }

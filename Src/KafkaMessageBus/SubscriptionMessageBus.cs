@@ -2,38 +2,65 @@ using System;
 using System.Threading.Tasks;
 using KafkaMessageBus.Abstractions;
 using Confluent.Kafka;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using KafkaMessageBus.Extensions;
 using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace KafkaMessageBus
 {
-    public partial class KafkaMessageBus : IKafkaMessageBus
+    public class SubscriptionMessageBus : ISubscriptionMessageBus
     {
-        public Task Subscribe<TMessage>(Func<TMessage, Task> processAction, CancellationToken cancellationToken, Action<IConsumerOptions<string, TMessage>> defaultOptionsModifier = null)
-            where TMessage : IMessage
+        private readonly IEnumerable<string> _brokers;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ISubscriptionsManager _subsManager;
+
+        public SubscriptionMessageBus(IEnumerable<string> brokers, IServiceProvider serviceProvider, ISubscriptionsManager subsManager = null)
         {
-            return Subscribe<string, TMessage>(processAction, cancellationToken, defaultOptionsModifier);
+            _brokers = brokers ?? throw new ArgumentNullException(nameof(brokers));
+            if (!brokers.Any()) throw new ArgumentException("Brokers list is empty");
+            _brokers = brokers;
+
+            _serviceScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            
+            _subsManager = subsManager ?? new DefaultSubscriptionsManager();
         }
 
-        public Task Subscribe<TKey, TMessage>(Func<TMessage, Task> processAction, CancellationToken cancellationToken, Action<IConsumerOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        public Task Subscribe<TMessage>(Func<TMessage, Task> messageProcessAction, CancellationToken cancellationToken)
             where TMessage : IMessage
         {
-            var defaultOptions = GetDefaultConsumerOptions<TKey, TMessage>();
-            if (defaultOptionsModifier != null)
-                defaultOptionsModifier(defaultOptions);
-
-            return Subscribe<TKey, TMessage>(processAction, cancellationToken, defaultOptions);
+            return Subscribe<string, TMessage>(messageProcessAction, cancellationToken);
         }
 
-        public Task Subscribe<TMessage>(Func<TMessage, Task> processAction, CancellationToken cancellationToken, IConsumerOptions<string, TMessage> options)
+        public Task Subscribe<TKey, TMessage>(Func<TMessage, Task> messageProcessAction, CancellationToken cancellationToken)
             where TMessage : IMessage
         {
-            return Subscribe<string, TMessage>(processAction, cancellationToken, options);
+            var options = GetDefaultConsumerOptions<TKey, TMessage>();
+            return Subscribe<TKey, TMessage>(messageProcessAction, options, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage>(Func<TMessage, Task> processAction, CancellationToken cancellationToken, IConsumerOptions<TKey, TMessage> options)
+        public Task Subscribe<TMessage>(Func<TMessage, Task> messageProcessAction, Action<IConsumerOptions<string, TMessage>> setupAction, CancellationToken cancellationToken)
+            where TMessage : IMessage
+        {
+            return Subscribe<string, TMessage>(messageProcessAction, setupAction, cancellationToken);
+        }
+
+        public Task Subscribe<TKey, TMessage>(Func<TMessage, Task> messageProcessAction, Action<IConsumerOptions<TKey, TMessage>> setupAction, CancellationToken cancellationToken)
+            where TMessage : IMessage
+        {
+            var options = GetDefaultConsumerOptions<TKey, TMessage>();
+            setupAction(options);
+
+            return Subscribe<TKey, TMessage>(messageProcessAction, options, cancellationToken);
+        }
+
+        public Task Subscribe<TMessage>(Func<TMessage, Task> messageProcessAction, IConsumerOptions<string, TMessage> options, CancellationToken cancellationToken)
+            where TMessage : IMessage
+        {
+            return Subscribe<string, TMessage>(messageProcessAction, options, cancellationToken);
+        }
+
+        public Task Subscribe<TKey, TMessage>(Func<TMessage, Task> messageProcessAction, IConsumerOptions<TKey, TMessage> options, CancellationToken cancellationToken)
             where TMessage : IMessage
         {
             return Task.Run(async () => {
@@ -49,7 +76,7 @@ namespace KafkaMessageBus
                     {
                         var expired = consumeResult.Message.Value.MessageExpireDate < DateTime.UtcNow;
                         if (!expired)
-                            await processAction(consumeResult.Message.Value);
+                            await messageProcessAction(consumeResult.Message.Value);
                     
                         if (!options.EnableAutoCommit)
                             consumer.Commit();
@@ -58,32 +85,46 @@ namespace KafkaMessageBus
             }, cancellationToken);
         }
 
-        public Task Subscribe<TMessage, TMessageProcessor>(CancellationToken cancellationToken, Action<IConsumerOptions<string, TMessage>> defaultOptionsModifier = null)
+        public Task Subscribe<TMessage, TMessageProcessor>(CancellationToken cancellationToken)
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {            
-            return Subscribe<string, TMessage, TMessageProcessor>(cancellationToken, defaultOptionsModifier);
+            return Subscribe<string, TMessage, TMessageProcessor>(cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage, TMessageProcessor>(CancellationToken cancellationToken, Action<IConsumerOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        public Task Subscribe<TKey, TMessage, TMessageProcessor>(CancellationToken cancellationToken)
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {  
-            var defaultOptions = GetDefaultConsumerOptions<TKey, TMessage>();
-            if (defaultOptionsModifier != null)
-                defaultOptionsModifier(defaultOptions);
-
-            return Subscribe<TKey, TMessage, TMessageProcessor>(cancellationToken, defaultOptions);
+            var options = GetDefaultConsumerOptions<TKey, TMessage>();
+            return Subscribe<TKey, TMessage, TMessageProcessor>(options, cancellationToken);
         }
 
-        public Task Subscribe<TMessage, TMessageProcessor>(CancellationToken cancellationToken, IConsumerOptions<string, TMessage> options)
+        public Task Subscribe<TMessage, TMessageProcessor>(Action<IConsumerOptions<string, TMessage>> setupAction, CancellationToken cancellationToken)
+            where TMessage : IMessage
+            where TMessageProcessor : IMessageProcessor<TMessage>
+        {            
+            return Subscribe<string, TMessage, TMessageProcessor>(setupAction, cancellationToken);
+        }
+
+        public Task Subscribe<TKey, TMessage, TMessageProcessor>(Action<IConsumerOptions<TKey, TMessage>> setupAction, CancellationToken cancellationToken)
+            where TMessage : IMessage
+            where TMessageProcessor : IMessageProcessor<TMessage>
+        {  
+            var options = GetDefaultConsumerOptions<TKey, TMessage>();
+            setupAction(options);
+
+            return Subscribe<TKey, TMessage, TMessageProcessor>(options, cancellationToken);
+        }
+
+        public Task Subscribe<TMessage, TMessageProcessor>(IConsumerOptions<string, TMessage> options, CancellationToken cancellationToken)
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
-            return Subscribe<string, TMessage, TMessageProcessor>(cancellationToken, options);
+            return Subscribe<string, TMessage, TMessageProcessor>(options, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage, TMessageProcessor>(CancellationToken cancellationToken, IConsumerOptions<TKey, TMessage> options)
+        public Task Subscribe<TKey, TMessage, TMessageProcessor>(IConsumerOptions<TKey, TMessage> options, CancellationToken cancellationToken)
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
@@ -119,16 +160,7 @@ namespace KafkaMessageBus
             var messageName = _subsManager.GetMessageKey<TMessage>();
             var processorName = typeof(TMessageProcessor).Name;
 
-            try
-            {
-                _subsManager.RemoveSubscription<TMessage, TMessageProcessor>();
-                _logger.LogWarning($"message processor {processorName} unsubscribed from message {messageName}.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"unsubscribing message processor {processorName} from message {messageName} failed.");
-                throw ex;
-            }
+            _subsManager.RemoveSubscription<TMessage, TMessageProcessor>();
         }
 
         // ---------
@@ -143,8 +175,8 @@ namespace KafkaMessageBus
                 .SetValueDeserializer(options.ValueDeserializer)
                 .SetErrorHandler((consumer, error) => {
                     if (error.IsError) {
-                        _logger.LogError($"building kafka consumer failed. {error.Reason}");
                         consumer.Dispose();
+                        throw new Exception($"building kafka consumer failed. {error.Reason}");
                     }
                 })
                 .Build();

@@ -11,8 +11,8 @@ namespace KafkaMessageBus
         public IEnumerable<string> Topics { get; set; }
         public TKey Key { get; set; }
         public int TimeOutMilliseconds { get; set; }
-        public IKafkaMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
-        public IKafkaMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }
+        public IMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
+        public IMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }
         public bool EnableAutoCommit { get; set; }
         public AutoOffsetReset AutoOffsetReset { get; set; }
         public bool AllowAutoCreateTopics { get; set; }

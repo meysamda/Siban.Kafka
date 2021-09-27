@@ -4,7 +4,7 @@ using static KafkaMessageBus.DefaultSubscriptionsManager;
 
 namespace KafkaMessageBus.Abstractions
 {
-    public interface IKafkaMessageBusSubscriptionsManager
+    public interface ISubscriptionsManager
     {
         bool IsEmpty { get; }
         event EventHandler<string> OnEventRemoved;

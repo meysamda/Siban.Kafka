@@ -2,7 +2,7 @@
 
 namespace KafkaMessageBus.Abstractions
 {
-    public interface IKafkaMessageBusSerializer<T> : ISerializer<T>
+    public interface IMessageBusSerializer<T> : ISerializer<T>
     {
     }
 }

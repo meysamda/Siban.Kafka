@@ -2,27 +2,33 @@ using System;
 using System.Threading.Tasks;
 using KafkaMessageBus.Abstractions;
 using Confluent.Kafka;
-using Microsoft.Extensions.Logging;
-using KafkaMessageBus.Extensions;
 using System.Net;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace KafkaMessageBus
 {
-    public partial class KafkaMessageBus : IKafkaMessageBus
+    public class PublishMessageBus : IPublishMessageBus
     {
-        public void Publish<TMessage>(TMessage message, Action<IProducerOptions<string, TMessage>> defaultOptionsModifier = null, Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
-            where TMessage : IMessage
+        private readonly IEnumerable<string> _brokers;
+
+        public PublishMessageBus(IEnumerable<string> brokers)
         {
-            Publish<string, TMessage>(null, message, defaultOptionsModifier, deliveryHandler);
+            _brokers = brokers ?? throw new ArgumentNullException(nameof(brokers));
+            if (!brokers.Any()) throw new ArgumentException("Brokers list is empty");
+            _brokers = brokers;
         }
 
-        public void Publish<TKey, TMessage>(TKey key, TMessage message, Action<IProducerOptions<TKey, TMessage>> defaultOptionsModifier = null, Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
+        public void Publish<TMessage>(TMessage message, Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
+            where TMessage : IMessage
+        {
+            Publish<string, TMessage>(null, message,  deliveryHandler);
+        }
+        
+        public void Publish<TKey, TMessage>(TKey key, TMessage message, Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
             var options = GetDefaultProducerOptions<TKey, TMessage>(message);
-            if (defaultOptionsModifier != null)
-                defaultOptionsModifier(options);
-
             Publish<TKey, TMessage>(key, message, options, deliveryHandler);
         }
 
@@ -51,19 +57,31 @@ namespace KafkaMessageBus
             producer.Produce(options.Topic, kafkaMessage);
         }
 
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(TMessage message, Action<IProducerOptions<string, TMessage>> defaultOptionsModifier = null)
+        public void Publish<TMessage>(TMessage message, Action<IProducerOptions<string, TMessage>> setupAction, Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
-            return PublishAsync<string, TMessage>(null, message, defaultOptionsModifier);
+            Publish<string, TMessage>(null, message, setupAction, deliveryHandler);
         }
 
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(TKey key, TMessage message, Action<IProducerOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        public void Publish<TKey, TMessage>(TKey key, TMessage message, Action<IProducerOptions<TKey, TMessage>> setupAction, Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
             var options = GetDefaultProducerOptions<TKey, TMessage>(message);
-            if (defaultOptionsModifier != null)
-                defaultOptionsModifier(options);
+            setupAction(options);
 
+            Publish<TKey, TMessage>(key, message, options, deliveryHandler);
+        }
+
+        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(TMessage message)
+            where TMessage : IMessage
+        {
+            return PublishAsync<string, TMessage>(null, message);
+        }
+
+        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(TKey key, TMessage message)
+            where TMessage : IMessage
+        {
+            var options = GetDefaultProducerOptions<TKey, TMessage>(message);
             return PublishAsync<TKey, TMessage>(key, message, options);
         }
 
@@ -88,6 +106,21 @@ namespace KafkaMessageBus
             return result;
         }
 
+        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(TMessage message, Action<IProducerOptions<string, TMessage>> setupAction)
+            where TMessage : IMessage
+        {
+            return PublishAsync<string, TMessage>(null, message, setupAction);
+        }
+
+        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(TKey key, TMessage message, Action<IProducerOptions<TKey, TMessage>> setupAction)
+            where TMessage : IMessage
+        {
+            var options = GetDefaultProducerOptions<TKey, TMessage>(message);
+            setupAction(options);
+
+            return PublishAsync<TKey, TMessage>(key, message, options);
+        }
+
         // ----------        
 
         private IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IProducerOptions<TKey, TMessage> options)
@@ -99,7 +132,11 @@ namespace KafkaMessageBus
                 .SetKeySerializer(options.KeySerializer)
                 .SetValueSerializer(options.ValueSerializer)
                 .SetErrorHandler((producer, error) => {
-                    if (error.IsError) _logger.LogError($"building kafka producer failed. {error.Reason}");
+                    if (error.IsError)
+                    {
+                        producer.Dispose();
+                        throw new Exception($"building kafka producer failed. {error.Reason}");
+                    }
                 })
                 .Build();
 
@@ -109,7 +146,7 @@ namespace KafkaMessageBus
         private IProducerOptions<TKey, TMessage> GetDefaultProducerOptions<TKey, TMessage>(TMessage message)
         where TMessage : IMessage
         {
-            var result = new DefaultProduceOptions<TKey, TMessage> {
+            var result = new DefaultProducerOptions<TKey, TMessage> {
                 Topic = message.GetType().Name,
                 KeySerializer = new DefaultSerializer<TKey>(),
                 ValueSerializer = new DefaultSerializer<TMessage>()
@@ -123,7 +160,6 @@ namespace KafkaMessageBus
         {
             if (deliveryReport.Error.IsError)
             {
-                _logger.LogError($"producing message on topic {deliveryReport.Topic} failed; reason: {deliveryReport.Error.Reason}, details: {deliveryReport.Error.ToString()}");
                 throw new Exception($"producing message on topic {deliveryReport.Topic} failed; reason: {deliveryReport.Error.Reason}, details: {deliveryReport.Error.ToString()}");
             }
         }

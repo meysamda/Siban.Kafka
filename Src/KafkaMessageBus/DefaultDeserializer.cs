@@ -5,7 +5,7 @@ using KafkaMessageBus.Abstractions;
 
 namespace KafkaMessageBus
 {
-    public class DefaultDeserializer<T> : IKafkaMessageBusDeserializer<T>
+    public class DefaultDeserializer<T> : IMessageBusDeserializer<T>
     {
         public T Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
         {

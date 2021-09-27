@@ -3,7 +3,7 @@ using KafkaMessageBus.Abstractions;
 
 namespace KafkaMessageBus
 {
-    public partial class DefaultSubscriptionsManager : IKafkaMessageBusSubscriptionsManager
+    public partial class DefaultSubscriptionsManager : ISubscriptionsManager
     {
         public class SubscriptionInfo
         {
