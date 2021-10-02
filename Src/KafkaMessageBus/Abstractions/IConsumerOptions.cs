@@ -1,12 +1,10 @@
-﻿using System.Collections.Generic;
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
 
 namespace KafkaMessageBus.Abstractions
 {
     public interface IConsumerOptions<TKey, TMessage>
     where TMessage : IMessage
     {
-        IEnumerable<string> Topics { get; set; }
         string GroupId { get; set; }
         IMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
         IMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }

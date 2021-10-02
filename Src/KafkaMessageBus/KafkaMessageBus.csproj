@@ -6,12 +6,12 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <PackageId>KafkaMessageBus</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Description>Kafka message bus allows you to publish messages and subscribe on topics to handle received messages</Description>
     <Authors>meysam abasi</Authors>
     <Company>Tech1a Co.</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>TargetFramework modified to netstandard2.0</PackageReleaseNotes>
+    <PackageReleaseNotes>some bugs fixed and topics removed form producer/consumer options</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/meysamda/KafkaMessageBus</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>

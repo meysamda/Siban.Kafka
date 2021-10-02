@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Confluent.Kafka;
+﻿using Confluent.Kafka;
 using KafkaMessageBus.Abstractions;
 
 namespace KafkaMessageBus
@@ -8,9 +7,6 @@ namespace KafkaMessageBus
     where TMessage : IMessage
     {
         public string GroupId { get; set; }
-        public IEnumerable<string> Topics { get; set; }
-        public TKey Key { get; set; }
-        public int TimeOutMilliseconds { get; set; }
         public IMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
         public IMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }
         public bool EnableAutoCommit { get; set; }

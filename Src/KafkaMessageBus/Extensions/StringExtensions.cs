@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace System
+namespace KafkaMessageBus.Extenstions
 {
     public static class StringExtensions
     {

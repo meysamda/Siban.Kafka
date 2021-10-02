@@ -28,12 +28,12 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddMessageBus(this IServiceCollection services, IEnumerable<string> brokers, ISubscriptionsManager subsManager = null)
+        public static IServiceCollection AddMessageBus(this IServiceCollection services, IEnumerable<string> publishBrokers, IEnumerable<string> subscriptionBrokers, ISubscriptionsManager subsManager = null)
         { 
             var serviceProvider = services.BuildServiceProvider();
 
             services.AddSingleton<IMessageBus, MessageBus>(sp => {
-                var messageBus = new MessageBus(brokers, serviceProvider, subsManager);
+                var messageBus = new MessageBus(publishBrokers, subscriptionBrokers, serviceProvider, subsManager);
                 return messageBus;
             });
 
