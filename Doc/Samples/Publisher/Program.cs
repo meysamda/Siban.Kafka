@@ -7,9 +7,18 @@ namespace Samples.Publisher
 {
     class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var brokers = new string[] { "localhost:9092" };
+            // local
+            // var brokers = new string[] { "localhost2:9092" };
+
+            // tavana
+            var brokers = new string[] { "192.168.34.104:9092" };
+
+            // sedna
+            // var brokers = new string[] { "91.99.98.201:9092" };
+            // var brokers = new string[] { "91.99.98.202:9092" };
+
             var messageBus = new PublishMessageBus(brokers);
 
             var message = new TempMessage {
@@ -18,7 +27,8 @@ namespace Samples.Publisher
                 MessageId = Guid.NewGuid()
             };
 
-            messageBus.Publish(message);
+            var result = await messageBus.PublishAsync("SejamCountry-test", message);
+            // Console.WriteLine();
         }
     }
 }

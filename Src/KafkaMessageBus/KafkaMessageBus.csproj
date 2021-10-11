@@ -6,7 +6,7 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <PackageId>KafkaMessageBus</PackageId>
-    <Version>1.0.4</Version>
+    <Version>1.0.4.1</Version>
     <Description>Kafka message bus allows you to publish messages and subscribe on topics to handle received messages</Description>
     <Authors>meysam abasi</Authors>
     <Company>Tech1a Co.</Company>

@@ -151,6 +151,8 @@ namespace KafkaMessageBus
             {
                 BootstrapServers = _brokers.GetString(),
                 ClientId = Dns.GetHostName(),
+                Acks = Acks.Leader,
+                MessageTimeoutMs = 1000,
                 // EnableDeliveryReports = false
             };
 
