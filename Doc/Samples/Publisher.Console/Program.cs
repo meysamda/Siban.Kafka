@@ -19,6 +19,13 @@ namespace Samples.Publisher.Console
             };
 
             var result = await messageBus.PublishAsync("test-topic", message);
+
+            result = await messageBus.PublishAsync("test-topic", message, options =>
+            {
+                options.ProducerConfig.Acks = Confluent.Kafka.Acks.All;
+                options.ProducerConfig.BootstrapServers = "some thing different from default brokers defined in message bus instantiating";
+                options.ProducerConfig.MessageTimeoutMs = 50000;
+            });
         }
     }
 }

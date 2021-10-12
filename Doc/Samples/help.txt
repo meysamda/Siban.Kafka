@@ -1,0 +1,80 @@
+vs code launch.json contents:
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Publisher.Api (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Publisher.Api/bin/Debug/netcoreapp3.1/Publisher.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Publisher.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "Publisher.Console (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Publisher.Console/bin/Debug/netcoreapp3.1/Publisher.Console.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Publisher.Console",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "Publisher.Worker (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Publisher.Worker/bin/Debug/netcoreapp3.1/Publisher.Worker.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Publisher.Worker",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": "Subscriber.Console (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Subscriber.Console/bin/Debug/netcoreapp3.1/Subscriber.Console.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Subscriber.Console",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            // Use IntelliSense to find out which attributes exist for C# debugging
+            // Use hover for the description of the existing attributes
+            // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+            "name": "Subscriber.Worker (console)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/Subscriber.Worker/bin/Debug/netcoreapp3.1/Subscriber.Worker.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Subscriber.Worker",
+            // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}

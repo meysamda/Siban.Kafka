@@ -1,17 +1,24 @@
-﻿using KafkaMessageBus;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System;
+using KafkaMessageBus.Abstractions;
 using Samples.Messages;
-using System.Threading.Tasks;
 
-namespace Samples.Subscriber.Console
+namespace Samples.Subscriber.Api
 {
-    class Program
+    public class SubscriberService : BackgroundService
     {
-        static async Task Main(string[] args)
-        {
-            var brokers = new string[] { "localhost:9092" };
-            var messageBus = new SubscriptionMessageBus(brokers);
+        private readonly ISubscriptionMessageBus _messageBus;
 
-            var t1 = messageBus.Subscribe<TempMessage>(
+        public SubscriberService(ISubscriptionMessageBus messageBus)
+        {
+            _messageBus = messageBus;
+        }
+        
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        {
+            var t1 = _messageBus.Subscribe<TempMessage>(
                 new string[] { "test-topic" },
                 message =>
                 {
@@ -20,7 +27,7 @@ namespace Samples.Subscriber.Console
                 }
             );
 
-            var t2 = messageBus.Subscribe<TempMessage>(
+            var t2 = _messageBus.Subscribe<TempMessage>(
                 new string[] { "test-topic" },
                 message =>
                 {

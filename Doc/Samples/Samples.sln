@@ -1,21 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messages", "Samples\Messages\Messages.csproj", "{ACBA0D53-8270-4CF2-A9CC-D9E4FA26DB87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messages", "Messages\Messages.csproj", "{ACBA0D53-8270-4CF2-A9CC-D9E4FA26DB87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Publisher.Console", "Samples\Publisher.Console\Publisher.Console.csproj", "{8A7F1CC2-A2A6-4F47-8ABB-77D4EA6F5CC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher.Console", "Publisher.Console\Publisher.Console.csproj", "{8A7F1CC2-A2A6-4F47-8ABB-77D4EA6F5CC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Publisher.Worker", "Samples\Publisher.Worker\Publisher.Worker.csproj", "{CCEB3C0B-2FBF-4726-B3AC-5FAD74935EC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher.Worker", "Publisher.Worker\Publisher.Worker.csproj", "{CCEB3C0B-2FBF-4726-B3AC-5FAD74935EC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriber.Console", "Samples\Subscriber.Console\Subscriber.Console.csproj", "{995310C1-4849-4E1B-BC83-AEBE1C3BA050}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriber.Console", "Subscriber.Console\Subscriber.Console.csproj", "{995310C1-4849-4E1B-BC83-AEBE1C3BA050}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriber.Worker", "Samples\Subscriber.Worker\Subscriber.Worker.csproj", "{3634E29C-C213-4693-AFD5-4EF4C30C8DCA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriber.Worker", "Subscriber.Worker\Subscriber.Worker.csproj", "{3634E29C-C213-4693-AFD5-4EF4C30C8DCA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Publisher.Api", "Samples\Publisher.Api\Publisher.Api.csproj", "{70F2920E-C2A7-43D0-9D3A-81494E297A78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher.Api", "Publisher.Api\Publisher.Api.csproj", "{70F2920E-C2A7-43D0-9D3A-81494E297A78}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KafkaMessageBus", "..\Src\KafkaMessageBus\KafkaMessageBus.csproj", "{BC5ADAB9-E2A7-4089-A402-E9BF988B89BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KafkaMessageBus", "..\..\Src\KafkaMessageBus\KafkaMessageBus.csproj", "{BC5ADAB9-E2A7-4089-A402-E9BF988B89BA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriber.Api", "Subscriber.Api\Subscriber.Api.csproj", "{4D42773B-91B8-4658-AFD3-21636C94973C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,9 +27,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{ACBA0D53-8270-4CF2-A9CC-D9E4FA26DB87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -114,5 +113,23 @@ Global
 		{BC5ADAB9-E2A7-4089-A402-E9BF988B89BA}.Release|x64.Build.0 = Release|Any CPU
 		{BC5ADAB9-E2A7-4089-A402-E9BF988B89BA}.Release|x86.ActiveCfg = Release|Any CPU
 		{BC5ADAB9-E2A7-4089-A402-E9BF988B89BA}.Release|x86.Build.0 = Release|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Debug|x64.Build.0 = Debug|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Debug|x86.Build.0 = Debug|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Release|x64.ActiveCfg = Release|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Release|x64.Build.0 = Release|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Release|x86.ActiveCfg = Release|Any CPU
+		{4D42773B-91B8-4658-AFD3-21636C94973C}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4C9CDE28-19D5-4059-8959-05DADFDFA03F}
 	EndGlobalSection
 EndGlobal

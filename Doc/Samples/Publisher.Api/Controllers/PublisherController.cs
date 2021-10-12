@@ -17,7 +17,7 @@ namespace Samples.Publisher.Api.Controllers
             _messageBus = messageBus;
         }
 
-        [HttpGet("publish")]
+        [HttpGet("publish1")]
         public async Task<IActionResult> Publish()
         {
             var message = new TempMessage {
@@ -27,6 +27,25 @@ namespace Samples.Publisher.Api.Controllers
             };
 
             var result = await _messageBus.PublishAsync("test-topic", message);
+            return Ok();
+        }
+
+        [HttpGet("publish2")]
+        public async Task<IActionResult> Publish2()
+        {
+            var message = new TempMessage
+            {
+                Body = "Hello world",
+                Number = 1,
+                MessageId = Guid.NewGuid()
+            };
+
+            var result = await _messageBus.PublishAsync("test-topic", message, options =>
+            {
+                options.ProducerConfig.Acks = Confluent.Kafka.Acks.All;
+                options.ProducerConfig.BootstrapServers = "some thing different from default brokers defined in message bus registering phase";
+                options.ProducerConfig.MessageTimeoutMs = 50000;
+            });
             return Ok();
         }
     }

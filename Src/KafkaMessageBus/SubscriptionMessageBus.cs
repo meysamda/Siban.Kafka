@@ -46,7 +46,7 @@ namespace KafkaMessageBus
             options = options ?? GetDefaultSubscribeOptions<TKey, TMessage>();
 
             return Task.Run(async () => {
-                using var consumer = GetConsumer<TKey, TMessage>(options);
+                using var consumer = GetConsumer(options);
                 consumer.Subscribe(topics);
 
                 _subsManager.AddSubscription<TMessage, Func<TMessage, Task>>();
