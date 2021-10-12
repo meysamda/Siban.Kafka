@@ -1,4 +1,6 @@
-﻿using KafkaMessageBus.Abstractions;
+﻿using System;
+using Confluent.Kafka;
+using KafkaMessageBus.Abstractions;
 
 namespace KafkaMessageBus
 {
