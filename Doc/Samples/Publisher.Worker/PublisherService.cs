@@ -3,6 +3,7 @@ using Microsoft.Extensions.Hosting;
 using System.Threading;
 using System;
 using KafkaMessageBus.Abstractions;
+using Samples.Messages;
 
 namespace Samples.Publisher.Worker
 {
@@ -17,20 +18,14 @@ namespace Samples.Publisher.Worker
         
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            try
+            var message = new TempMessage
             {
-                var message = new TempMessage {
-                    Body = "Hello world",
-                    Number = 1,
-                    MessageId = Guid.NewGuid()
-                };
+                Body = "Hello world",
+                Number = 1,
+                MessageId = Guid.NewGuid()
+            };
 
-                var result = await _messageBus.PublishAsync("test-topic", message);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            var result = await _messageBus.PublishAsync("test-topic", message);
         }
     }
 }

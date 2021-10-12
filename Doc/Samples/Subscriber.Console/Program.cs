@@ -1,12 +1,24 @@
-﻿using System;
+﻿using KafkaMessageBus;
+using Samples.Messages;
+using System.Threading.Tasks;
 
 namespace Samples.Subscriber.Console
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var brokers = new string[] { "localhost:9092" };
+            var messageBus = new SubscriptionMessageBus(brokers);
+
+            await messageBus.Subscribe<TempMessage>(
+                new string[] { "test-topic" },
+                message =>
+                {
+                    System.Console.WriteLine(message.Body);
+                    return Task.CompletedTask;
+                }
+            );
         }
     }
 }

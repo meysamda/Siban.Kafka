@@ -16,13 +16,13 @@ namespace KafkaMessageBus
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ISubscriptionsManager _subsManager;
 
-        public SubscriptionMessageBus(IEnumerable<string> brokers, IServiceProvider serviceProvider, ISubscriptionsManager subsManager = null)
+        public SubscriptionMessageBus(IEnumerable<string> brokers, IServiceProvider serviceProvider = null, ISubscriptionsManager subsManager = null)
         {
             _brokers = brokers ?? throw new ArgumentNullException(nameof(brokers));
             if (!brokers.Any()) throw new ArgumentException("Brokers list is empty");
             _brokers = brokers;
 
-            _serviceScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
+            _serviceScopeFactory = serviceProvider?.GetRequiredService<IServiceScopeFactory>();
             _subsManager = subsManager ?? new DefaultSubscriptionsManager();
         }
 
@@ -109,6 +109,9 @@ namespace KafkaMessageBus
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
+            if (_serviceScopeFactory == null)
+                throw new ArgumentException($"Unable to resolve {typeof(TMessageProcessor).Name}, IServiceProvider is null");
+
             options = options ?? GetDefaultSubscribeOptions<TKey, TMessage>();
             
             return Task.Run(async () => {

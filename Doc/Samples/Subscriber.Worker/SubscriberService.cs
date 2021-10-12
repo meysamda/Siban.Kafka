@@ -18,20 +18,12 @@ namespace Samples.Subscriber.Worker
         
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                await _messageBus.Subscribe<TempMessage>(
-                    new string[] { "test-topic" },
-                    message => { 
-                        Console.WriteLine(message.Body);
-                        return Task.CompletedTask;
-                    },
-                    default(CancellationToken));
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            await _messageBus.Subscribe<TempMessage>(
+                new string[] { "test-topic" },
+                message => {
+                    Console.WriteLine(message.Body);
+                    return Task.CompletedTask;
+                });
         }
     }
 }

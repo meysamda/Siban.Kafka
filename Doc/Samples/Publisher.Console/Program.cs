@@ -13,7 +13,7 @@ namespace Samples.Publisher.Console
             var messageBus = new PublishMessageBus(brokers);
 
             var message = new TempMessage {
-                Body = "سلام ایران",
+                Body = "Hello world",
                 Number = 1,
                 MessageId = Guid.NewGuid()
             };

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using KafkaMessageBus;
-using KafkaMessageBus.Abstractions;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
 namespace Samples.Publisher.Worker

@@ -15,7 +15,7 @@ namespace KafkaMessageBus
         public MessageBus(
             IEnumerable<string> publishBrokers,
             IEnumerable<string> subscriptionBrokers,
-            IServiceProvider serviceProvider,
+            IServiceProvider serviceProvider = null,
             ISubscriptionsManager subsManager = null)
         {
             _publishMessageBus = new PublishMessageBus(publishBrokers);
