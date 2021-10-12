@@ -6,12 +6,12 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <PackageId>KafkaMessageBus</PackageId>
-    <Version>1.0.4.1</Version>
-    <Description>Kafka message bus allows you to publish messages and subscribe on topics to handle received messages</Description>
+    <Version>1.1.0</Version>
+    <Description>Kafka message bus is an abstraction on Confluent.Kafka package. It enables you to create a message bus and do publish / subcribe operations simply or in advanced way.</Description>
     <Authors>meysam abasi</Authors>
     <Company>Tech1a Co.</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>refactor</PackageReleaseNotes>
+    <PackageReleaseNotes>Added ProducerConfig and ConsumerConfig to IPublishOptions and ISubscribeOptions</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/meysamda/KafkaMessageBus</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>

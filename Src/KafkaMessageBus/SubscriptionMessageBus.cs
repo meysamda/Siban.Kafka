@@ -23,20 +23,27 @@ namespace KafkaMessageBus
             _brokers = brokers;
 
             _serviceScopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
-            
             _subsManager = subsManager ?? new DefaultSubscriptionsManager();
         }
 
-        public Task Subscribe<TMessage>(IEnumerable<string> topics, Func<TMessage, Task> messageProcessAction, CancellationToken cancellationToken, IConsumerOptions<string, TMessage> options = null)
+        public Task Subscribe<TMessage>(
+            IEnumerable<string> topics,
+            Func<TMessage, Task> messageProcessor,
+            ISubscribeOptions<string, TMessage> options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
         {
-            return Subscribe<string, TMessage>(topics, messageProcessAction, cancellationToken, options);
+            return Subscribe<string, TMessage>(topics, messageProcessor, options, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage>(IEnumerable<string> topics, Func<TMessage, Task> messageProcessAction, CancellationToken cancellationToken, IConsumerOptions<TKey, TMessage> options = null)
+        public Task Subscribe<TKey, TMessage>(
+            IEnumerable<string> topics,
+            Func<TMessage, Task> messageProcessor,
+            ISubscribeOptions<TKey, TMessage> options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
         {
-            options = options ?? GetDefaultConsumerOptions<TKey, TMessage>();
+            options = options ?? GetDefaultSubscribeOptions<TKey, TMessage>();
 
             return Task.Run(async () => {
                 using var consumer = GetConsumer<TKey, TMessage>(options);
@@ -51,44 +58,58 @@ namespace KafkaMessageBus
                     {
                         var expired = consumeResult.Message.Value.MessageExpireDate < DateTime.UtcNow;
                         if (!expired)
-                            await messageProcessAction(consumeResult.Message.Value);
+                            await messageProcessor(consumeResult.Message.Value);
                     
-                        if (!options.EnableAutoCommit)
+                        if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
                     }
                 }
             }, cancellationToken);
         }
 
-        public Task Subscribe<TMessage>(IEnumerable<string> topics, Func<TMessage, Task> messageProcessAction, Action<IConsumerOptions<string, TMessage>> setupAction, CancellationToken cancellationToken)
+        public Task Subscribe<TMessage>(
+            IEnumerable<string> topics,
+            Func<TMessage, Task> messageProcessor,
+            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
         {
-            return Subscribe<string, TMessage>(topics, messageProcessAction, setupAction, cancellationToken);
+            return Subscribe<string, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage>(IEnumerable<string> topics, Func<TMessage, Task> messageProcessAction, Action<IConsumerOptions<TKey, TMessage>> setupAction, CancellationToken cancellationToken)
+        public Task Subscribe<TKey, TMessage>(
+            IEnumerable<string> topics,
+            Func<TMessage, Task> messageProcessor,
+            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
         {
-            var options = GetDefaultConsumerOptions<TKey, TMessage>();
-            setupAction(options);
+            var options = GetDefaultSubscribeOptions<TKey, TMessage>();
+            defaultOptionsModifier(options);
 
-            return Subscribe<TKey, TMessage>(topics, messageProcessAction, cancellationToken, options);
+            return Subscribe<TKey, TMessage>(topics, messageProcessor, options, cancellationToken);
         }
 
         // -----------
 
-        public Task Subscribe<TMessage, TMessageProcessor>(IEnumerable<string> topics, CancellationToken cancellationToken, IConsumerOptions<string, TMessage> options = null)
+        public Task Subscribe<TMessage, TMessageProcessor>(
+            IEnumerable<string> topics,
+            ISubscribeOptions<string, TMessage> options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
-            return Subscribe<string, TMessage, TMessageProcessor>(topics, cancellationToken, options);
+            return Subscribe<string, TMessage, TMessageProcessor>(topics, options, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage, TMessageProcessor>(IEnumerable<string> topics, CancellationToken cancellationToken, IConsumerOptions<TKey, TMessage> options = null)
+        public Task Subscribe<TKey, TMessage, TMessageProcessor>(
+            IEnumerable<string> topics,
+            ISubscribeOptions<TKey, TMessage> options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
-            options = options ?? GetDefaultConsumerOptions<TKey, TMessage>();
+            options = options ?? GetDefaultSubscribeOptions<TKey, TMessage>();
             
             return Task.Run(async () => {
                 using var consumer = GetConsumer<TKey, TMessage>(options);
@@ -109,28 +130,34 @@ namespace KafkaMessageBus
                         if (!expired)
                             await messageProcessor.Process(consumeResult.Message.Value, cancellationToken);
 
-                        if (!options.EnableAutoCommit)
+                        if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
                     }
                 }
             }, cancellationToken);
         }
 
-        public Task Subscribe<TMessage, TMessageProcessor>(IEnumerable<string> topics, Action<IConsumerOptions<string, TMessage>> setupAction, CancellationToken cancellationToken)
+        public Task Subscribe<TMessage, TMessageProcessor>(
+            IEnumerable<string> topics,
+            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {            
-            return Subscribe<string, TMessage, TMessageProcessor>(topics, setupAction, cancellationToken);
+            return Subscribe<string, TMessage, TMessageProcessor>(topics, defaultOptionsModifier, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage, TMessageProcessor>(IEnumerable<string> topics, Action<IConsumerOptions<TKey, TMessage>> setupAction, CancellationToken cancellationToken)
+        public Task Subscribe<TKey, TMessage, TMessageProcessor>(
+            IEnumerable<string> topics,
+            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier,
+            CancellationToken cancellationToken = default(CancellationToken))
             where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {  
-            var options = GetDefaultConsumerOptions<TKey, TMessage>();
-            setupAction(options);
+            var options = GetDefaultSubscribeOptions<TKey, TMessage>();
+            defaultOptionsModifier(options);
 
-            return Subscribe<TKey, TMessage, TMessageProcessor>(topics, cancellationToken, options);
+            return Subscribe<TKey, TMessage, TMessageProcessor>(topics, options, cancellationToken);
         }
 
         // ---------
@@ -144,56 +171,57 @@ namespace KafkaMessageBus
             _subsManager.RemoveSubscription<TMessage, TMessageProcessor>();
         }
 
-        private IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(IConsumerOptions<TKey, TMessage> options)
+        private IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
         where TMessage : IMessage
         {            
-            var config = GetConsumerConfig<TKey, TMessage>(options);
-
-            var consumer = new ConsumerBuilder<TKey, TMessage>(config)
+            var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)
                 .SetValueDeserializer(options.ValueDeserializer)
-                .SetErrorHandler((consumer, error) => {
-                    if (error.IsError) {
-                        consumer.Dispose();
-                        throw new Exception($"building kafka consumer failed. {error.Reason}");
-                    }
+                .SetErrorHandler((consumer, error) => 
+                {
+                    consumer.Dispose();
+                    options.ErrorHandler(error);
+                })
+                .SetLogHandler((consumer, logMessage) => 
+                {
+                    options.LogHandler(logMessage);
                 })
                 .Build();
 
             return consumer;
         }
 
-        private IConsumerOptions<TKey, TMessage> GetDefaultConsumerOptions<TKey, TMessage>()
+        private ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>()
         where TMessage : IMessage
         {
             var messageName = _subsManager.GetMessageKey<TMessage>();
 
-            var result = new DefaultConsumerOptions<TKey, TMessage> {
-                GroupId = messageName,
+            var result = new DefaultSubscribeOptions<TKey, TMessage> {
                 KeyDeserializer = new DefaultDeserializer<TKey>(),
                 ValueDeserializer = new DefaultDeserializer<TMessage>(),
-                EnableAutoCommit = true,
-                AllowAutoCreateTopics = true,
-                AutoOffsetReset = AutoOffsetReset.Earliest
+                ConsumerConfig = new ConsumerConfig
+                {
+                    BootstrapServers = _brokers.GetString(),
+                    GroupId = messageName,
+                    EnableAutoCommit = true,
+                    AutoOffsetReset = AutoOffsetReset.Earliest,
+                    EnableAutoOffsetStore = true,
+                    AllowAutoCreateTopics = true
+                },
+                ErrorHandler = error => 
+                {
+                    if (error.IsError)
+                    {
+                        throw new Exception($"building kafka consumer failed. {error.Reason}");
+                    }
+                },
+                LogHandler = logMessage => 
+                {
+                    // do some thing with log message
+                }
             };
 
             return result;
-        }
-
-        private ConsumerConfig GetConsumerConfig<TKey, TMessage>(IConsumerOptions<TKey, TMessage> options)
-        where TMessage : IMessage
-        {
-            var config = new ConsumerConfig
-            {
-                BootstrapServers = _brokers.GetString(),
-                GroupId = options.GroupId,
-                EnableAutoCommit = options.EnableAutoCommit,
-                AutoOffsetReset = options.AutoOffsetReset,
-                EnableAutoOffsetStore = true,
-                AllowAutoCreateTopics = true
-            };
-
-            return config;
         }
     }
 }

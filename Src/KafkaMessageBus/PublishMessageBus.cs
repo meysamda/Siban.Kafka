@@ -20,16 +20,25 @@ namespace KafkaMessageBus
             _brokers = brokers;
         }
 
-        public void Publish<TMessage>(string topic, TMessage message, IProducerOptions<string, TMessage> options = null, Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
+        public void Publish<TMessage>(
+            string topic,
+            TMessage message,
+            IPublishOptions<string, TMessage> options = null,
+            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
             Publish<string, TMessage>(topic, null, message, options, deliveryHandler);
         }
 
-        public void Publish<TKey, TMessage>(string topic, TKey key, TMessage message, IProducerOptions<TKey, TMessage> options = null, Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
+        public void Publish<TKey, TMessage>(
+            string topic,
+            TKey key,
+            TMessage message,
+            IPublishOptions<TKey, TMessage> options = null,
+            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
-            options = options ?? GetDefaultProducerOptions<TKey, TMessage>();
+            options = options ?? GetDefaultPublishOptions<TKey, TMessage>();
 
             using var producer = GetProducer(options);
 
@@ -47,34 +56,49 @@ namespace KafkaMessageBus
             producer.Produce(topic, kafkaMessage);
         }
 
-        public void Publish<TMessage>(string topic, TMessage message, Action<IProducerOptions<string, TMessage>> setupAction, Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
+        public void Publish<TMessage>(
+            string topic,
+            TMessage message,
+            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier,
+            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
-            Publish<string, TMessage>(topic, null, message, setupAction, deliveryHandler);
+            Publish<string, TMessage>(topic, null, message, defaultOptionsModifier, deliveryHandler);
         }
 
-        public void Publish<TKey, TMessage>(string topic, TKey key, TMessage message, Action<IProducerOptions<TKey, TMessage>> setupAction, Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
+        public void Publish<TKey, TMessage>(
+            string topic,
+            TKey key,
+            TMessage message,
+            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier,
+            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
             where TMessage : IMessage
         {
-            var options = GetDefaultProducerOptions<TKey, TMessage>();
-            setupAction(options);
+            var options = GetDefaultPublishOptions<TKey, TMessage>();
+            defaultOptionsModifier(options);
 
             Publish<TKey, TMessage>(topic, key, message, options, deliveryHandler);
         }
         
         // ----------
 
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(string topic, TMessage message, IProducerOptions<string, TMessage> options = null)
+        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+            string topic,
+            TMessage message,
+            IPublishOptions<string, TMessage> options = null)
             where TMessage : IMessage
         {
             return PublishAsync<string, TMessage>(topic, null, message, options);
         }
 
-        public async Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(string topic, TKey key, TMessage message, IProducerOptions<TKey, TMessage> options = null)
+        public async Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+            string topic,
+            TKey key,
+            TMessage message,
+            IPublishOptions<TKey, TMessage> options = null)
             where TMessage : IMessage
         {
-            options = options ?? GetDefaultProducerOptions<TKey, TMessage>();
-            
+            options = options ?? GetDefaultPublishOptions<TKey, TMessage>();
             using var producer = GetProducer(options);
 
             var kafkaMessage = new Message<TKey, TMessage> {
@@ -87,49 +111,74 @@ namespace KafkaMessageBus
             return result;
         }
 
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(string topic, TMessage message, Action<IProducerOptions<string, TMessage>> setupAction)
+        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+            string topic,
+            TMessage message,
+            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier)
             where TMessage : IMessage
         {
-            return PublishAsync<string, TMessage>(topic, null, message, setupAction);
+            return PublishAsync<string, TMessage>(topic, null, message, defaultOptionsModifier);
         }
 
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(string topic, TKey key, TMessage message, Action<IProducerOptions<TKey, TMessage>> setupAction)
+        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+            string topic,
+            TKey key,
+            TMessage message,
+            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier)
             where TMessage : IMessage
         {
-            var options = GetDefaultProducerOptions<TKey, TMessage>();
-            setupAction(options);
+            var options = GetDefaultPublishOptions<TKey, TMessage>();
+            defaultOptionsModifier(options);
 
             return PublishAsync<TKey, TMessage>(topic, key, message, options);
         }
 
         // ----------        
 
-        private IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IProducerOptions<TKey, TMessage> options)
+        private IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
         where TMessage : IMessage
-        {            
-            var config = GetProducerConfig<TKey, TMessage>(options);
-
-            var producer = new ProducerBuilder<TKey, TMessage>(config)
+        {   
+            var producer = new ProducerBuilder<TKey, TMessage>(options.ProducerConfig)
                 .SetKeySerializer(options.KeySerializer)
                 .SetValueSerializer(options.ValueSerializer)
-                .SetErrorHandler((producer, error) => {
-                    if (error.IsError)
-                    {
-                        producer.Dispose();
-                        throw new Exception($"building kafka producer failed. {error.Reason}");
-                    }
+                .SetErrorHandler((producer, error) => 
+                {
+                    producer.Dispose();
+                    options.ErrorHandler(error);
+                })
+                .SetLogHandler((producer, logMessage) => 
+                {
+                    options.LogHandler(logMessage);
                 })
                 .Build();
 
             return producer;
         }
 
-        private IProducerOptions<TKey, TMessage> GetDefaultProducerOptions<TKey, TMessage>()
+        private IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>()
         where TMessage : IMessage
         {
-            var result = new DefaultProducerOptions<TKey, TMessage> {
+            var result = new DefaultPublishOptions<TKey, TMessage> {
                 KeySerializer = new DefaultSerializer<TKey>(),
-                ValueSerializer = new DefaultSerializer<TMessage>()
+                ValueSerializer = new DefaultSerializer<TMessage>(),
+                ProducerConfig = new ProducerConfig 
+                {
+                    BootstrapServers = _brokers.GetString(),
+                    ClientId = Dns.GetHostName(),
+                    Acks = Acks.Leader,
+                    MessageTimeoutMs = 1000
+                },
+                ErrorHandler = error => 
+                {
+                    if (error.IsError)
+                    {
+                        throw new Exception($"building kafka producer failed. {error.Reason}");
+                    }
+                },
+                LogHandler = logMessage => 
+                {
+                    // do some thing with log message
+                }
             };
 
             return result;
@@ -142,21 +191,6 @@ namespace KafkaMessageBus
             {
                 throw new Exception($"producing message on topic {deliveryReport.Topic} failed; reason: {deliveryReport.Error.Reason}, details: {deliveryReport.Error.ToString()}");
             }
-        }
-
-        private ProducerConfig GetProducerConfig<TKey, TMessage>(IProducerOptions<TKey, TMessage> options)
-        where TMessage : IMessage
-        {
-            var config = new ProducerConfig 
-            {
-                BootstrapServers = _brokers.GetString(),
-                ClientId = Dns.GetHostName(),
-                Acks = Acks.Leader,
-                MessageTimeoutMs = 1000,
-                // EnableDeliveryReports = false
-            };
-
-            return config;
         }
     }
 }
