@@ -8,8 +8,8 @@ namespace Samples.Subscriber.Console
     {
         static async Task Main(string[] args)
         {
-            var brokers = new string[] { "localhost:9092" };
-            var messageBus = new SubscriptionMessageBus(brokers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            var messageBus = new SubscriptionMessageBus(bootstrapServers);
 
             var t1 = messageBus.Subscribe<TempMessage>(
                 new string[] { "test-topic" },
@@ -30,7 +30,7 @@ namespace Samples.Subscriber.Console
                 options =>
                 {
                     options.ConsumerConfig.GroupId = "new-group-1";
-                    options.ConsumerConfig.BootstrapServers = "some thing different from default brokers defined in message bus registering phase";
+                    options.ConsumerConfig.BootstrapServers = "some thing different from default bootstrapServers defined in message bus registering phase";
                     options.ConsumerConfig.Acks = Confluent.Kafka.Acks.All;
                 }
             );

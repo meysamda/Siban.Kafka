@@ -6,8 +6,8 @@ namespace Samples.Publisher.Worker
     {
         public static void ConfigureServices(IServiceCollection services)
         {            
-            var brokers = new string[] { "localhost:9092" };
-            services.AddPublishMessageBus(brokers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            services.AddPublishMessageBus(bootstrapServers);
 
             services.AddHostedService<PublisherService>();
         }

@@ -27,8 +27,8 @@ namespace Samples.Subscriber.Api
         {
             services.AddControllers();
 
-            var brokers = new string[] { "localhost:9092" };
-            services.AddSubscriptionMessageBus(brokers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            services.AddSubscriptionMessageBus(bootstrapServers);
 
             services.AddHostedService<SubscriberService>();
         }

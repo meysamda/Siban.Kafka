@@ -30,7 +30,7 @@ namespace Samples.Publisher.Worker
             result = await _messageBus.PublishAsync("test-topic", message, options =>
             {
                 options.ProducerConfig.Acks = Confluent.Kafka.Acks.All;
-                options.ProducerConfig.BootstrapServers = "some thing different from default brokers defined in message bus registering phase";
+                options.ProducerConfig.BootstrapServers = "some thing different from default bootstrapServers defined in message bus registering phase";
                 options.ProducerConfig.MessageTimeoutMs = 50000;
             });
         }

@@ -11,13 +11,13 @@ namespace KafkaMessageBus
 {
     public class PublishMessageBus : IPublishMessageBus
     {
-        private readonly IEnumerable<string> _brokers;
+        private readonly IEnumerable<string> _bootstrapServers;
 
-        public PublishMessageBus(IEnumerable<string> brokers)
+        public PublishMessageBus(IEnumerable<string> bootstrapServers)
         {
-            _brokers = brokers ?? throw new ArgumentNullException(nameof(brokers));
-            if (!brokers.Any()) throw new ArgumentException("Brokers list is empty");
-            _brokers = brokers;
+            _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
+            if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
+            _bootstrapServers = bootstrapServers;
         }
 
         public void Publish<TMessage>(
@@ -163,7 +163,7 @@ namespace KafkaMessageBus
                 ValueSerializer = new DefaultSerializer<TMessage>(),
                 ProducerConfig = new ProducerConfig 
                 {
-                    BootstrapServers = _brokers.GetString(),
+                    BootstrapServers = _bootstrapServers.GetString(),
                     ClientId = Dns.GetHostName(),
                     Acks = Acks.Leader,
                     MessageTimeoutMs = 1000

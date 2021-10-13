@@ -37,7 +37,7 @@ namespace Samples.Subscriber.Api
                 options =>
                 {
                     options.ConsumerConfig.GroupId = "new-group-1";
-                    options.ConsumerConfig.BootstrapServers = "some thing different from default brokers defined in message bus registering phase";
+                    options.ConsumerConfig.BootstrapServers = "some thing different from default bootstrapServers defined in message bus registering phase";
                     options.ConsumerConfig.Acks = Confluent.Kafka.Acks.All;
                 }
             );

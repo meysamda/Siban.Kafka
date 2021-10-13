@@ -18,8 +18,8 @@ namespace Samples.Publisher.Api
         {
             services.AddControllers();
 
-            var brokers = new string[] { "localhost:9092" };
-            services.AddPublishMessageBus(brokers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            services.AddPublishMessageBus(bootstrapServers);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

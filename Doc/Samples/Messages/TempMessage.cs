@@ -9,6 +9,5 @@ namespace Samples.Messages
         public int Number { get; set; }
         
         public Guid MessageId { get; set; }
-        public DateTime? MessageExpireDate { get; set; }
     }
 }

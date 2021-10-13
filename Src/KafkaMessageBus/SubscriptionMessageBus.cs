@@ -12,15 +12,15 @@ namespace KafkaMessageBus
 {
     public class SubscriptionMessageBus : ISubscriptionMessageBus
     {
-        private readonly IEnumerable<string> _brokers;
+        private readonly IEnumerable<string> _bootstrapServers;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ISubscriptionsManager _subsManager;
 
-        public SubscriptionMessageBus(IEnumerable<string> brokers, IServiceProvider serviceProvider = null, ISubscriptionsManager subsManager = null)
+        public SubscriptionMessageBus(IEnumerable<string> bootstrapServers, IServiceProvider serviceProvider = null, ISubscriptionsManager subsManager = null)
         {
-            _brokers = brokers ?? throw new ArgumentNullException(nameof(brokers));
-            if (!brokers.Any()) throw new ArgumentException("Brokers list is empty");
-            _brokers = brokers;
+            _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
+            if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
+            _bootstrapServers = bootstrapServers;
 
             _serviceScopeFactory = serviceProvider?.GetRequiredService<IServiceScopeFactory>();
             _subsManager = subsManager ?? new DefaultSubscriptionsManager();
@@ -56,10 +56,8 @@ namespace KafkaMessageBus
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        var expired = consumeResult.Message.Value.MessageExpireDate < DateTime.UtcNow;
-                        if (!expired)
-                            await messageProcessor(consumeResult.Message.Value);
-                    
+                        await messageProcessor(consumeResult.Message.Value);
+
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
                     }
@@ -129,9 +127,7 @@ namespace KafkaMessageBus
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        var expired = consumeResult.Message.Value.MessageExpireDate < DateTime.UtcNow;
-                        if (!expired)
-                            await messageProcessor.Process(consumeResult.Message.Value, cancellationToken);
+                        await messageProcessor.Process(consumeResult.Message.Value, cancellationToken);
 
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
@@ -204,7 +200,7 @@ namespace KafkaMessageBus
                 ValueDeserializer = new DefaultDeserializer<TMessage>(),
                 ConsumerConfig = new ConsumerConfig
                 {
-                    BootstrapServers = _brokers.GetString(),
+                    BootstrapServers = _bootstrapServers.GetString(),
                     GroupId = messageName,
                     EnableAutoCommit = true,
                     AutoOffsetReset = AutoOffsetReset.Earliest,

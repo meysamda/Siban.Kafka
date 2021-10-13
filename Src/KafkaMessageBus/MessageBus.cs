@@ -13,13 +13,13 @@ namespace KafkaMessageBus
         private readonly ISubscriptionMessageBus _subscriptionMessageBus;
 
         public MessageBus(
-            IEnumerable<string> publishBrokers,
-            IEnumerable<string> subscriptionBrokers,
+            IEnumerable<string> publishBootstrapServers,
+            IEnumerable<string> subscriptionBootstrapServers,
             IServiceProvider serviceProvider = null,
             ISubscriptionsManager subsManager = null)
         {
-            _publishMessageBus = new PublishMessageBus(publishBrokers);
-            _subscriptionMessageBus = new SubscriptionMessageBus(subscriptionBrokers, serviceProvider, subsManager);
+            _publishMessageBus = new PublishMessageBus(publishBootstrapServers);
+            _subscriptionMessageBus = new SubscriptionMessageBus(subscriptionBootstrapServers, serviceProvider, subsManager);
         }
 
         public void Publish<TMessage>(

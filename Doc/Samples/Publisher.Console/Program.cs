@@ -9,8 +9,8 @@ namespace Samples.Publisher.Console
     {
         public static async Task Main(string[] args)
         {
-            var brokers = new string[] { "localhost:9092" };
-            var messageBus = new PublishMessageBus(brokers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            var messageBus = new PublishMessageBus(bootstrapServers);
 
             var message = new TempMessage {
                 Body = "Hello world",
@@ -23,7 +23,7 @@ namespace Samples.Publisher.Console
             result = await messageBus.PublishAsync("test-topic", message, options =>
             {
                 options.ProducerConfig.Acks = Confluent.Kafka.Acks.All;
-                options.ProducerConfig.BootstrapServers = "some thing different from default brokers defined in message bus instantiating";
+                options.ProducerConfig.BootstrapServers = "some thing different from default bootstrapServers defined in message bus instantiating";
                 options.ProducerConfig.MessageTimeoutMs = 50000;
             });
         }

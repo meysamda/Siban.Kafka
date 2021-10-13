@@ -6,8 +6,8 @@ namespace Samples.Subscriber.Worker
     {
         public static void ConfigureServices(IServiceCollection services)
         {            
-            var brokers = new string[] { "localhost:9092" };
-            services.AddSubscriptionMessageBus(brokers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            services.AddSubscriptionMessageBus(bootstrapServers);
 
             services.AddHostedService<SubscriberService>();
         }
