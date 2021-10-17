@@ -5,7 +5,6 @@ using KafkaMessageBus.Abstractions;
 namespace KafkaMessageBus
 {
     public class DefaultSubscribeOptions<TKey, TMessage> : ISubscribeOptions<TKey, TMessage>
-    where TMessage : IMessage
     {
         public IMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
         public IMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }

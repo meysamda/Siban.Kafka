@@ -4,7 +4,6 @@ using Confluent.Kafka;
 namespace KafkaMessageBus.Abstractions
 {
     public interface IPublishOptions<TKey, TMessage>
-    where TMessage : IMessage
     {
         IMessageBusSerializer<TMessage> ValueSerializer { get; set; }
         IMessageBusSerializer<TKey> KeySerializer { get; set; }

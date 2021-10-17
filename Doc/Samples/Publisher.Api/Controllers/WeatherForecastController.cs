@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using KafkaMessageBus.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Samples.Messages;
 
 namespace Samples.Publisher.Api.Controllers
 {
@@ -27,22 +29,19 @@ namespace Samples.Publisher.Api.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public async Task<IEnumerable<WeatherForecast>> Get()
         {
-            var message = new TempMessage {
-                Body = "Hello world",
-                Number = 1,
-                MessageId = Guid.NewGuid()
-            };
+            _messageBus.Publish("greeting-1", "hello world");
+            _messageBus.Publish("greeting-1", "hello world", options => { /* modify default options */ });
+            await _messageBus.PublishAsync("greeting-1", "hello world");
+            await _messageBus.PublishAsync("greeting-1", "hello world", options => { /* modify default options */ });
+            
+            var message = new Greeting { Body = "hello world" };
 
-            var result = await _messageBus.PublishAsync("test-topic", message);
-
-            var result = await _messageBus.PublishAsync("test-topic", message, options =>
-            {
-                options.ProducerConfig.Acks = Confluent.Kafka.Acks.All;
-                options.ProducerConfig.BootstrapServers = "some thing different from default bootstrapServers defined in message bus registering phase";
-                options.ProducerConfig.MessageTimeoutMs = 50000;
-            });
+            _messageBus.Publish("greeting-2", message);
+            _messageBus.Publish("greeting-2", message, options => { /* modify default options */ });
+            await _messageBus.PublishAsync("greeting-2", message);
+            await _messageBus.PublishAsync("greeting-2", message, options => { /* modify default options */ });
 
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
