@@ -57,7 +57,7 @@ public static void ConfigureServices(IServiceCollection services)
     var bootstrapServers = new string[] { "localhost:9092" };
     services.AddSubscriptionMessageBus(bootstrapServers);
 
-    services.AddHostedService<SubscriberService>();
+    services.AddHostedService<PublisherService>();
 }
 ```
 
