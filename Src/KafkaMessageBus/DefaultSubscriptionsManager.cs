@@ -38,25 +38,14 @@ namespace KafkaMessageBus
             }
         }
 
-        public void AddSubscription<TMessage, TMessageHandler>(string messageName)
-            where TMessage : IMessage
-        {
-            DoAddSubscription(typeof(TMessageHandler), messageName, isDynamic: false);
-
-            lock (this)
-            {
-                if (!_messageTypes.Contains(typeof(TMessage)))
-                {
-                    _messageTypes.Add(typeof(TMessage));
-                }    
-            }
-        }
-
         public void AddSubscription<TMessage, TMessageHandler>()
-            where TMessage : IMessage
         {
             var messageName = GetMessageKey<TMessage>();
+            AddSubscription<TMessage, TMessageHandler>(messageName);
+        }
 
+        public void AddSubscription<TMessage, TMessageHandler>(string messageName)
+        {
             DoAddSubscription(typeof(TMessageHandler), messageName, isDynamic: false);
 
             lock (this)
@@ -95,11 +84,15 @@ namespace KafkaMessageBus
         }
 
         public void RemoveSubscription<TMessage, TMessageHandler>()
-            where TMessage : IMessage
         {
-            var handlerToRemove = FindSubscriptionToRemove<TMessage, TMessageHandler>();
-            var eventName = GetMessageKey<TMessage>();
-            DoRemoveHandler(eventName, handlerToRemove);
+            var messageName = GetMessageKey<TMessage>();
+            RemoveSubscription<TMessage, TMessageHandler>(messageName);
+        }
+
+        public void RemoveSubscription<TMessage, TMessageHandler>(string messageName)
+        {
+            var handlerToRemove = FindSubscriptionToRemove<TMessage, TMessageHandler>(messageName);
+            DoRemoveHandler(messageName, handlerToRemove);
         }
 
         private void DoRemoveHandler(string messageName, SubscriptionInfo subsToRemove)
@@ -123,7 +116,7 @@ namespace KafkaMessageBus
             }
         }
 
-        public IEnumerable<SubscriptionInfo> GetHandlersForMessage<TMessage>() where TMessage : IMessage
+        public IEnumerable<SubscriptionInfo> GetHandlersForMessage<TMessage>()
         {
             var key = GetMessageKey<TMessage>();
             return GetHandlersForMessage(key);
@@ -143,10 +136,8 @@ namespace KafkaMessageBus
             handler?.Invoke(this, eventName);
         }
 
-        private SubscriptionInfo FindSubscriptionToRemove<TMessage, TMessageHandler>()
-             where TMessage : IMessage
+        private SubscriptionInfo FindSubscriptionToRemove<TMessage, TMessageHandler>(string messageName)
         {
-            var messageName = GetMessageKey<TMessage>();
             return DoFindSubscriptionToRemove(messageName, typeof(TMessageHandler));
         }
 
@@ -163,11 +154,12 @@ namespace KafkaMessageBus
             }
         }
 
-        public bool HasSubscriptionsForMessage<TMessage>() where TMessage : IMessage
+        public bool HasSubscriptionsForMessage<TMessage>()
         {
             var key = GetMessageKey<TMessage>();
             return HasSubscriptionsForMessage(key);
         }
+
         public bool HasSubscriptionsForMessage(string messageName)
         {
             lock (this)

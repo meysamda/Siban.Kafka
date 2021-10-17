@@ -8,21 +8,22 @@ namespace KafkaMessageBus.Abstractions
     {
         bool IsEmpty { get; }
         event EventHandler<string> OnEventRemoved;
-        void AddSubscription<TMessage, TMessageHandler>()
-           where TMessage : IMessage;
 
-        void AddSubscription<TMessage, TMessageHandler>(string messageName)
-           where TMessage : IMessage;
+        void AddSubscription<TMessage, TMessageHandler>();
+        void AddSubscription<TMessage, TMessageHandler>(string messageName);
 
-        void RemoveSubscription<TMessage, TMessageHandler>()
-            where TMessage : IMessage;
+        void RemoveSubscription<TMessage, TMessageHandler>();
+        void RemoveSubscription<TMessage, TMessageHandler>(string messageName);
 
-        bool HasSubscriptionsForMessage<TMessage>() where TMessage : IMessage;
+        bool HasSubscriptionsForMessage<TMessage>();
         bool HasSubscriptionsForMessage(string messageName);
+
         Type GetMessageTypeByName(string messageName);
         void Clear();
-        IEnumerable<SubscriptionInfo> GetHandlersForMessage<TMessage>() where TMessage : IMessage;
-        IEnumerable<SubscriptionInfo> GetHandlersForMessage(string eventName);
+
+        IEnumerable<SubscriptionInfo> GetHandlersForMessage<TMessage>();
+        IEnumerable<SubscriptionInfo> GetHandlersForMessage(string messageName);
+
         string GetMessageKey<T>();
     }
 }

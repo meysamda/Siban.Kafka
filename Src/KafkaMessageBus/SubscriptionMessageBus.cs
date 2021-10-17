@@ -26,12 +26,20 @@ namespace KafkaMessageBus
             _subsManager = subsManager ?? new DefaultSubscriptionsManager();
         }
 
+        public Task Subscribe(
+            IEnumerable<string> topics,
+            Func<string, Task> messageProcessor,
+            ISubscribeOptions<string, string> options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Subscribe<string>(topics, messageProcessor, options, cancellationToken);
+        }
+
         public Task Subscribe<TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             ISubscribeOptions<string, TMessage> options = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
         {
             return Subscribe<string, TMessage>(topics, messageProcessor, options, cancellationToken);
         }
@@ -41,7 +49,6 @@ namespace KafkaMessageBus
             Func<TMessage, Task> messageProcessor,
             ISubscribeOptions<TKey, TMessage> options = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
         {
             options = options ?? GetDefaultSubscribeOptions<TKey, TMessage>();
 
@@ -65,12 +72,22 @@ namespace KafkaMessageBus
             }, cancellationToken);
         }
 
+        // -----------
+
+        public Task Subscribe(
+            IEnumerable<string> topics,
+            Func<string, Task> messageProcessor,
+            Action<ISubscribeOptions<string, string>> defaultOptionsModifier,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return Subscribe<string>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+        }
+
         public Task Subscribe<TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
         {
             return Subscribe<string, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
@@ -80,7 +97,6 @@ namespace KafkaMessageBus
             Func<TMessage, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
         {
             var options = GetDefaultSubscribeOptions<TKey, TMessage>();
             defaultOptionsModifier(options);
@@ -90,11 +106,19 @@ namespace KafkaMessageBus
 
         // -----------
 
+        public Task Subscribe<TMessageProcessor>(
+            IEnumerable<string> topics,
+            ISubscribeOptions<string, string> options = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TMessageProcessor : IMessageProcessor<string>
+        {
+            return Subscribe<string, TMessageProcessor>(topics, options, cancellationToken);
+        }
+
         public Task Subscribe<TMessage, TMessageProcessor>(
             IEnumerable<string> topics,
             ISubscribeOptions<string, TMessage> options = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
             return Subscribe<string, TMessage, TMessageProcessor>(topics, options, cancellationToken);
@@ -104,7 +128,6 @@ namespace KafkaMessageBus
             IEnumerable<string> topics,
             ISubscribeOptions<TKey, TMessage> options = null,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {
             if (_serviceScopeFactory == null)
@@ -136,11 +159,21 @@ namespace KafkaMessageBus
             }, cancellationToken);
         }
 
+        // -----------
+
+        public Task Subscribe<TMessageProcessor>(
+            IEnumerable<string> topics,
+            Action<ISubscribeOptions<string, string>> defaultOptionsModifier,
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TMessageProcessor : IMessageProcessor<string>
+        {            
+            return Subscribe<string, TMessageProcessor>(topics, defaultOptionsModifier, cancellationToken);
+        }
+
         public Task Subscribe<TMessage, TMessageProcessor>(
             IEnumerable<string> topics,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {            
             return Subscribe<string, TMessage, TMessageProcessor>(topics, defaultOptionsModifier, cancellationToken);
@@ -150,7 +183,6 @@ namespace KafkaMessageBus
             IEnumerable<string> topics,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier,
             CancellationToken cancellationToken = default(CancellationToken))
-            where TMessage : IMessage
             where TMessageProcessor : IMessageProcessor<TMessage>
         {  
             var options = GetDefaultSubscribeOptions<TKey, TMessage>();
@@ -162,7 +194,6 @@ namespace KafkaMessageBus
         // ---------
 
         private void Unsubscribe<TMessage, TMessageProcessor>()
-            where TMessage : IMessage
         {
             var messageName = _subsManager.GetMessageKey<TMessage>();
             var processorName = typeof(TMessageProcessor).Name;
@@ -171,7 +202,6 @@ namespace KafkaMessageBus
         }
 
         private IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
-        where TMessage : IMessage
         {            
             var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)
@@ -191,7 +221,6 @@ namespace KafkaMessageBus
         }
 
         private ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>()
-        where TMessage : IMessage
         {
             var messageName = _subsManager.GetMessageKey<TMessage>();
 

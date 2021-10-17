@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using KafkaMessageBus;
 using Samples.Messages;
 
@@ -12,20 +11,17 @@ namespace Samples.Publisher.Console
             var bootstrapServers = new string[] { "localhost:9092" };
             var messageBus = new PublishMessageBus(bootstrapServers);
 
-            var message = new TempMessage {
-                Body = "Hello world",
-                Number = 1,
-                MessageId = Guid.NewGuid()
-            };
+            messageBus.Publish("greeting-1", "hello world");
+            messageBus.Publish("greeting-1", "hello world", options => { /* modify default options */ });
+            await messageBus.PublishAsync("greeting-1", "hello world");
+            await messageBus.PublishAsync("greeting-1", "hello world", options => { /* modify default options */ });
+            
+            var message = new Greeting { Body = "hello world" };
 
-            var result = await messageBus.PublishAsync("test-topic", message);
-
-            result = await messageBus.PublishAsync("test-topic", message, options =>
-            {
-                options.ProducerConfig.Acks = Confluent.Kafka.Acks.All;
-                options.ProducerConfig.BootstrapServers = "some thing different from default bootstrapServers defined in message bus instantiating";
-                options.ProducerConfig.MessageTimeoutMs = 50000;
-            });
+            messageBus.Publish("greeting-2", message);
+            messageBus.Publish("greeting-2", message, options => { /* modify default options */ });
+            await messageBus.PublishAsync("greeting-2", message);
+            await messageBus.PublishAsync("greeting-2", message, options => { /* modify default options */ });
         }
     }
 }

@@ -5,7 +5,6 @@ using KafkaMessageBus.Abstractions;
 namespace KafkaMessageBus
 {
     public class DefaultPublishOptions<TKey, TMessage> : IPublishOptions<TKey, TMessage>
-    where TMessage : IMessage
     {
         public IMessageBusSerializer<TMessage> ValueSerializer { get; set; }
         public IMessageBusSerializer<TKey> KeySerializer { get; set; }
