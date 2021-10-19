@@ -16,10 +16,12 @@ namespace KafkaMessageBus
             IEnumerable<string> publishBootstrapServers,
             IEnumerable<string> subscriptionBootstrapServers,
             IServiceProvider serviceProvider = null,
+            DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer,
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
             ISubscriptionsManager subsManager = null)
         {
-            _publishMessageBus = new PublishMessageBus(publishBootstrapServers);
-            _subscriptionMessageBus = new SubscriptionMessageBus(subscriptionBootstrapServers, serviceProvider, subsManager);
+            _publishMessageBus = new PublishMessageBus(publishBootstrapServers, defaultSerializer);
+            _subscriptionMessageBus = new SubscriptionMessageBus(subscriptionBootstrapServers, serviceProvider, defaultDeserializer, subsManager);
         }
 
         public void Publish(

@@ -1,25 +1,8 @@
-﻿using System;
-using System.Text.Json;
-using Confluent.Kafka;
-using KafkaMessageBus.Abstractions;
-
-namespace KafkaMessageBus
+﻿namespace KafkaMessageBus
 {
-    public class DefaultSerializer<T> : IMessageBusSerializer<T>
+    public enum DefaultSerializer
     {
-        public byte[] Serialize(T data, SerializationContext context)
-        {
-            if (data == null) return null;
-
-            try
-            {
-                var result = JsonSerializer.SerializeToUtf8Bytes(data);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("unable to serialize.", ex);
-            }
-        }
+        MicrosoftJsonSerializer = 0,
+        MessagePackSerializer = 1
     }
 }

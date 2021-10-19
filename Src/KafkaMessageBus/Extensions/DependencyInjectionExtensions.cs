@@ -6,34 +6,47 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class DependencyInjectionExtensions
     {
-        public static IServiceCollection AddSubscriptionMessageBus(this IServiceCollection services, IEnumerable<string> brokers, ISubscriptionsManager subsManager = null)
+        public static IServiceCollection AddSubscriptionMessageBus(
+            this IServiceCollection services,
+            IEnumerable<string> bootstrapServers,
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
+            ISubscriptionsManager subsManager = null)
         { 
             var serviceProvider = services.BuildServiceProvider();
 
             services.AddSingleton<ISubscriptionMessageBus, SubscriptionMessageBus>(sp => {
-                var messageBus = new SubscriptionMessageBus(brokers, serviceProvider, subsManager);
+                var messageBus = new SubscriptionMessageBus(bootstrapServers, serviceProvider, defaultDeserializer, subsManager);
                 return messageBus;
             });
 
             return services;
         }
 
-        public static IServiceCollection AddPublishMessageBus(this IServiceCollection services, string[] brokers)
+        public static IServiceCollection AddPublishMessageBus(
+            this IServiceCollection services,
+            string[] bootstrapServers,
+            DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer)
         { 
             services.AddSingleton<IPublishMessageBus, PublishMessageBus>(sp => {
-                var messageBus = new PublishMessageBus(brokers);
+                var messageBus = new PublishMessageBus(bootstrapServers, defaultSerializer);
                 return messageBus;
             });
 
             return services;
         }
 
-        public static IServiceCollection AddMessageBus(this IServiceCollection services, IEnumerable<string> publishBrokers, IEnumerable<string> subscriptionBrokers, ISubscriptionsManager subsManager = null)
+        public static IServiceCollection AddMessageBus(
+            this IServiceCollection services,
+            IEnumerable<string> publishBootstrapServers,
+            IEnumerable<string> subscriptionBootstrapServers,
+            DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer,
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
+            ISubscriptionsManager subsManager = null)
         { 
             var serviceProvider = services.BuildServiceProvider();
 
             services.AddSingleton<IMessageBus, MessageBus>(sp => {
-                var messageBus = new MessageBus(publishBrokers, subscriptionBrokers, serviceProvider, subsManager);
+                var messageBus = new MessageBus(publishBootstrapServers, subscriptionBootstrapServers, serviceProvider, defaultSerializer, defaultDeserializer, subsManager);
                 return messageBus;
             });
 

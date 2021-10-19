@@ -7,6 +7,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using KafkaMessageBus.Extenstions;
+using KafkaMessageBus.DefaultSerializers;
 
 namespace KafkaMessageBus
 {
@@ -14,15 +15,21 @@ namespace KafkaMessageBus
     {
         private readonly IEnumerable<string> _bootstrapServers;
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly DefaultSerializer _defaultDeserializer;
         private readonly ISubscriptionsManager _subsManager;
 
-        public SubscriptionMessageBus(IEnumerable<string> bootstrapServers, IServiceProvider serviceProvider = null, ISubscriptionsManager subsManager = null)
+        public SubscriptionMessageBus(
+            IEnumerable<string> bootstrapServers,
+            IServiceProvider serviceProvider = null,
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
+            ISubscriptionsManager subsManager = null)
         {
             _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
             if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
             _bootstrapServers = bootstrapServers;
 
             _serviceScopeFactory = serviceProvider?.GetRequiredService<IServiceScopeFactory>();
+            _defaultDeserializer = defaultDeserializer;
             _subsManager = subsManager ?? new DefaultSubscriptionsManager();
         }
 
@@ -225,8 +232,8 @@ namespace KafkaMessageBus
             var messageName = _subsManager.GetMessageKey<TMessage>();
 
             var result = new DefaultSubscribeOptions<TKey, TMessage> {
-                KeyDeserializer = new DefaultDeserializer<TKey>(),
-                ValueDeserializer = new DefaultDeserializer<TMessage>(),
+                KeyDeserializer = GetDefaultDeserializer<TKey>(),
+                ValueDeserializer = GetDefaultDeserializer<TMessage>(),
                 ConsumerConfig = new ConsumerConfig
                 {
                     BootstrapServers = _bootstrapServers.GetString(),
@@ -250,6 +257,21 @@ namespace KafkaMessageBus
             };
 
             return result;
+        }
+
+        private IDeserializer<T> GetDefaultDeserializer<T>() 
+        {
+            switch (_defaultDeserializer)
+            {
+                case DefaultSerializer.MicrosoftJsonSerializer:
+                    return new MicrosoftJsonSerializer<T>();
+                
+                case DefaultSerializer.MessagePackSerializer:
+                    return new MessagePackSerializer<T>();
+
+                default:
+                    return new MicrosoftJsonSerializer<T>();
+            }
         }
     }
 }

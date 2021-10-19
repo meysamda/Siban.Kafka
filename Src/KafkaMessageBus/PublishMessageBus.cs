@@ -6,18 +6,25 @@ using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using KafkaMessageBus.Extenstions;
+using KafkaMessageBus.DefaultSerializers;
 
 namespace KafkaMessageBus
 {
     public class PublishMessageBus : IPublishMessageBus
     {
-        private readonly IEnumerable<string> _bootstrapServers;
 
-        public PublishMessageBus(IEnumerable<string> bootstrapServers)
+        private readonly IEnumerable<string> _bootstrapServers;
+        private readonly DefaultSerializer _defaultSerializer;
+
+        public PublishMessageBus(
+            IEnumerable<string> bootstrapServers,
+            DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer)
         {
             _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
             if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
             _bootstrapServers = bootstrapServers;
+
+            _defaultSerializer = defaultSerializer;
         }
 
         public void Publish(
@@ -187,8 +194,8 @@ namespace KafkaMessageBus
         private IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>()
         {
             var result = new DefaultPublishOptions<TKey, TMessage> {
-                KeySerializer = new DefaultSerializer<TKey>(),
-                ValueSerializer = new DefaultSerializer<TMessage>(),
+                KeySerializer = GetDefaultSerializer<TKey>(),
+                ValueSerializer = GetDefaultSerializer<TMessage>(),
                 ProducerConfig = new ProducerConfig 
                 {
                     BootstrapServers = _bootstrapServers.GetString(),
@@ -217,6 +224,21 @@ namespace KafkaMessageBus
             if (deliveryReport.Error.IsError)
             {
                 throw new Exception($"producing message on topic {deliveryReport.Topic} failed; reason: {deliveryReport.Error.Reason}, details: {deliveryReport.Error.ToString()}");
+            }
+        }
+
+        private ISerializer<T> GetDefaultSerializer<T>() 
+        {
+            switch (_defaultSerializer)
+            {
+                case DefaultSerializer.MicrosoftJsonSerializer:
+                    return new MicrosoftJsonSerializer<T>();
+                
+                case DefaultSerializer.MessagePackSerializer:
+                    return new MessagePackSerializer<T>();
+
+                default:
+                    return new MicrosoftJsonSerializer<T>();
             }
         }
     }
