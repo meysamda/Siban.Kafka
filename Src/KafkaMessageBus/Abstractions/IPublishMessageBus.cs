@@ -5,28 +5,7 @@ using Confluent.Kafka;
 namespace KafkaMessageBus.Abstractions
 {
     public interface IPublishMessageBus
-    {
-        void Publish(
-            string topic,
-            string message,
-            IPublishOptions<string, string> options = null,
-            Action<DeliveryReport<string, string>> deliveryHandler = null);
-
-        void Publish<TMessage>(
-            string topic,
-            TMessage message,
-            IPublishOptions<string, TMessage> options = null,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null);
-
-        void Publish<TKey, TMessage>(
-            string topic,
-            TKey key,
-            TMessage message,
-            IPublishOptions<TKey, TMessage> options = null,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null);
-
-        // -----
-        
+    {        
         void Publish(
             string topic,
             string message,
@@ -36,7 +15,7 @@ namespace KafkaMessageBus.Abstractions
         void Publish<TMessage>(
             string topic,
             TMessage message,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier,
+            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
             Action<DeliveryReport<string, TMessage>> deliveryHandler = null);
 
         void Publish<TKey, TMessage>(
@@ -48,38 +27,59 @@ namespace KafkaMessageBus.Abstractions
 
         // -----
 
-        Task<DeliveryResult<string, string>> PublishAsync(
+        void Publish(
+            IProducer<string, string> producer,
             string topic,
             string message,
-            IPublishOptions<string, string> options = null);
+            Action<DeliveryReport<string, string>> deliveryHandler = null);
 
-        Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+        void Publish<TMessage>(
+            IProducer<string, TMessage> producer,
             string topic,
             TMessage message,
-            IPublishOptions<string, TMessage> options = null);
+            Action<DeliveryReport<string, TMessage>> deliveryHandler = null);
 
-        Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+        void Publish<TKey, TMessage>(
+            IProducer<TKey, TMessage> producer,
             string topic,
             TKey key,
             TMessage message,
-            IPublishOptions<TKey, TMessage> options = null);
+            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null);        
 
         // -----
 
         Task<DeliveryResult<string, string>> PublishAsync(
             string topic,
             string message,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier);
+            Action<IPublishOptions<string, string>> defaultOptionsModifier = null);
         
         Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
             string topic,
             TMessage message,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier);
+            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null);
 
         Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
             string topic,
             TKey key,
             TMessage message,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier);
+            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null);
+
+        // -----
+
+        Task<DeliveryResult<string, string>> PublishAsync(
+            IProducer<string, string> producer,
+            string topic,
+            string message);
+
+        Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+            IProducer<string, TMessage> producer,
+            string topic,
+            TMessage message);
+
+        Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+            IProducer<TKey, TMessage> producer,
+            string topic,
+            TKey key,
+            TMessage message);
     }
 }

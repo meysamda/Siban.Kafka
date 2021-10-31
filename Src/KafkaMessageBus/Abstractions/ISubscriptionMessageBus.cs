@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 
 namespace KafkaMessageBus.Abstractions
 {    
@@ -10,19 +11,19 @@ namespace KafkaMessageBus.Abstractions
         Task Subscribe(
             IEnumerable<string> topics,
             Func<string, Task> messageProcessor,
-            ISubscribeOptions<string, string> options = null,
+            Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default(CancellationToken));
-
+        
         Task Subscribe<TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
-            ISubscribeOptions<string, TMessage> options = null,
+            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task Subscribe<TKey, TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
-            ISubscribeOptions<TKey, TMessage> options = null,
+            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default(CancellationToken));
 
         // -----
@@ -30,58 +31,58 @@ namespace KafkaMessageBus.Abstractions
         Task Subscribe(
             IEnumerable<string> topics,
             Func<string, Task> messageProcessor,
-            Action<ISubscribeOptions<string, string>> defaultOptionsModifier,
+            IConsumer<string, string> consumer,
             CancellationToken cancellationToken = default(CancellationToken));
-        
+
         Task Subscribe<TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier,
+            IConsumer<string, TMessage> consumer,
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task Subscribe<TKey, TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier,
+            IConsumer<TKey, TMessage> consumer,
             CancellationToken cancellationToken = default(CancellationToken));
 
         // -----
 
         Task Subscribe<TMessageProcessor>(
             IEnumerable<string> topics,
-            ISubscribeOptions<string, string> options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-            where TMessageProcessor : IMessageProcessor<string>;
-
-        Task Subscribe<TMessage, TMessageProcessor>(
-            IEnumerable<string> topics,
-            ISubscribeOptions<string, TMessage> options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-            where TMessageProcessor : IMessageProcessor<TMessage>;
-
-        Task Subscribe<TKey, TMessage, TMessageProcessor>(
-            IEnumerable<string> topics,
-            ISubscribeOptions<TKey, TMessage> options = null,
-            CancellationToken cancellationToken = default(CancellationToken))
-            where TMessageProcessor : IMessageProcessor<TMessage>;
-
-        // -----
-
-        Task Subscribe<TMessageProcessor>(
-            IEnumerable<string> topics,
-            Action<ISubscribeOptions<string, string>> defaultOptionsModifier,
+            Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default(CancellationToken))
             where TMessageProcessor : IMessageProcessor<string>;
         
         Task Subscribe<TMessage, TMessageProcessor>(
             IEnumerable<string> topics,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier,
+            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default(CancellationToken))
             where TMessageProcessor : IMessageProcessor<TMessage>;
 
         Task Subscribe<TKey, TMessage, TMessageProcessor>(
             IEnumerable<string> topics,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier,
+            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TMessageProcessor : IMessageProcessor<TMessage>;
+
+        // -----
+        
+        Task Subscribe<TMessageProcessor>(
+            IEnumerable<string> topics,
+            IConsumer<string, string> consumer,
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TMessageProcessor : IMessageProcessor<string>;
+
+        Task Subscribe<TMessage, TMessageProcessor>(
+            IEnumerable<string> topics,
+            IConsumer<string, TMessage> consumer,
+            CancellationToken cancellationToken = default(CancellationToken))
+            where TMessageProcessor : IMessageProcessor<TMessage>;
+
+        Task Subscribe<TKey, TMessage, TMessageProcessor>(
+            IEnumerable<string> topics,
+            IConsumer<TKey, TMessage> consumer,
             CancellationToken cancellationToken = default(CancellationToken))
             where TMessageProcessor : IMessageProcessor<TMessage>;
     }

@@ -24,6 +24,6 @@ namespace KafkaMessageBus.Abstractions
         IEnumerable<SubscriptionInfo> GetHandlersForMessage<TMessage>();
         IEnumerable<SubscriptionInfo> GetHandlersForMessage(string messageName);
 
-        string GetMessageKey<T>();
+        string GetMessageName<T>();
     }
 }

@@ -10,5 +10,6 @@ namespace KafkaMessageBus.Abstractions
         ConsumerConfig ConsumerConfig { get; set; }
         Action<Error> ErrorHandler { get; set; }
         Action<LogMessage> LogHandler { get; set; }
+        string ConsumerName { get; set; }
     }
 }

@@ -11,7 +11,7 @@
     <Authors>meysam abasi</Authors>
     <Company>Tech1a Co.</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>added MessagePack to default serilizers / deserializers</PackageReleaseNotes>
+    <PackageReleaseNotes>The ability to use customized producer / consumer added to publish / subscribe methods. Bugs fixed.</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/meysamda/KafkaMessageBus</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>

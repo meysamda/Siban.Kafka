@@ -11,5 +11,6 @@ namespace KafkaMessageBus
         public ProducerConfig ProducerConfig { get; set; }
         public Action<Error> ErrorHandler { get; set; }
         public Action<LogMessage> LogHandler { get; set; }
+        public string ProducerName { get; set; }
     }
 }

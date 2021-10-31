@@ -20,9 +20,10 @@ Take a look in the [Samples](https://github.com/meysamda/KafkaMessageBus/tree/ma
 Create a new instance from `PublishMessageBus`, then send a message using Publish or PublishAsync methods on a topic. You should use the PublishAsync method if you would like to wait for the result of your publish requests before proceeding. You might typically want to do this in highly concurrent scenarios, for example in the context of handling web requests. Behind the scenes, the client (Confluent.Kafka) will manage optimizing communication with the Kafka brokers for you, batching requests as appropriate.
 
 ```c#
+using System.Net;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 using KafkaMessageBus;
-using Samples.Messages;
 
 namespace Samples.Publisher.Console
 {
@@ -33,17 +34,40 @@ namespace Samples.Publisher.Console
             var bootstrapServers = new string[] { "localhost:9092" };
             var messageBus = new PublishMessageBus(bootstrapServers);
 
-            messageBus.Publish("greeting-1", "hello world");
-            messageBus.Publish("greeting-1", "hello world", options => { /* modify default options */ });
-            await messageBus.PublishAsync("greeting-1", "hello world");
-            await messageBus.PublishAsync("greeting-1", "hello world", options => { /* modify default options */ });
-            
-            var message = new Greeting { Body = "hello world" };
+            messageBus.Publish("greeting-1", "hello world-1", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                },
+                dr => {
+                    if (dr.Error.IsError) {
+                        System.Console.WriteLine(dr.Error.Reason);
+                        throw new System.Exception($"error, {dr.Error.Reason}");
+                    }
+                });
 
-            messageBus.Publish("greeting-2", message);
-            messageBus.Publish("greeting-2", message, options => { /* modify default options */ });
-            await messageBus.PublishAsync("greeting-2", message);
-            await messageBus.PublishAsync("greeting-2", message, options => { /* modify default options */ });
+            var result = await messageBus.PublishAsync("greeting-1", "hello world-2", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                });
+
+            var producerConfig = new ProducerConfig {
+                BootstrapServers = "localhost:9092"
+            };
+            var producer = new ProducerBuilder<string, string>(producerConfig)
+                .SetKeySerializer(Serializers.Utf8)
+                .SetValueSerializer(Serializers.Utf8)
+                .Build();
+
+            messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
+                if (dr.Error.IsError) {
+                    System.Console.WriteLine(dr.Error.Reason);
+                    throw new System.Exception($"error, {dr.Error.Reason}");
+                }
+            });
+
+            result = await messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
         }
     }
 }
@@ -55,9 +79,9 @@ In .NET web applications (or applications with [Microsoft Hosting Extension](htt
 public static void ConfigureServices(IServiceCollection services)
 {            
     var bootstrapServers = new string[] { "localhost:9092" };
-    services.AddSubscriptionMessageBus(bootstrapServers);
+    services.AddPublishMessageBus(bootstrapServers);
 
-    services.AddHostedService<SubscriberService>();
+    services.AddHostedService<PublisherService>();
 }
 ```
 
@@ -82,17 +106,40 @@ namespace Samples.Publisher.Worker
         
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _messageBus.Publish("greeting-1", "hello world");
-            _messageBus.Publish("greeting-1", "hello world", options => { /* modify default options */ });
-            await _messageBus.PublishAsync("greeting-1", "hello world");
-            await _messageBus.PublishAsync("greeting-1", "hello world", options => { /* modify default options */ });
-            
-            var message = new Greeting { Body = "hello world" };
+            _messageBus.Publish("greeting-1", "hello world-1", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                },
+                dr => {
+                    if (dr.Error.IsError) {
+                        System.Console.WriteLine(dr.Error.Reason);
+                        throw new System.Exception($"error, {dr.Error.Reason}");
+                    }
+                });
 
-            _messageBus.Publish("greeting-2", message);
-            _messageBus.Publish("greeting-2", message, options => { /* modify default options */ });
-            await _messageBus.PublishAsync("greeting-2", message);
-            await _messageBus.PublishAsync("greeting-2", message, options => { /* modify default options */ });
+            var result = await _messageBus.PublishAsync("greeting-1", "hello world-2", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                });
+
+            var producerConfig = new ProducerConfig {
+                BootstrapServers = "localhost:9092"
+            };
+            var producer = new ProducerBuilder<string, string>(producerConfig)
+                .SetKeySerializer(Serializers.Utf8)
+                .SetValueSerializer(Serializers.Utf8)
+                .Build();
+
+            _messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
+                if (dr.Error.IsError) {
+                    System.Console.WriteLine(dr.Error.Reason);
+                    throw new System.Exception($"error, {dr.Error.Reason}");
+                }
+            });
+
+            result = await _messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
         }
     }
 }

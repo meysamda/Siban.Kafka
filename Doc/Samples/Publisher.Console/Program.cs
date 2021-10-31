@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
+using Confluent.Kafka;
 using KafkaMessageBus;
-using Samples.Messages;
 
 namespace Samples.Publisher.Console
 {
@@ -11,17 +12,40 @@ namespace Samples.Publisher.Console
             var bootstrapServers = new string[] { "localhost:9092" };
             var messageBus = new PublishMessageBus(bootstrapServers);
 
-            messageBus.Publish("greeting-1", "hello world");
-            messageBus.Publish("greeting-1", "hello world", options => { /* modify default options */ });
-            await messageBus.PublishAsync("greeting-1", "hello world");
-            await messageBus.PublishAsync("greeting-1", "hello world", options => { /* modify default options */ });
-            
-            var message = new Greeting { Body = "hello world" };
+            messageBus.Publish("greeting-1", "hello world-1", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                },
+                dr => {
+                    if (dr.Error.IsError) {
+                        System.Console.WriteLine(dr.Error.Reason);
+                        throw new System.Exception($"error, {dr.Error.Reason}");
+                    }
+                });
 
-            messageBus.Publish("greeting-2", message);
-            messageBus.Publish("greeting-2", message, options => { /* modify default options */ });
-            await messageBus.PublishAsync("greeting-2", message);
-            await messageBus.PublishAsync("greeting-2", message, options => { /* modify default options */ });
+            var result = await messageBus.PublishAsync("greeting-1", "hello world-2", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                });
+
+            var producerConfig = new ProducerConfig {
+                BootstrapServers = "localhost:9092"
+            };
+            var producer = new ProducerBuilder<string, string>(producerConfig)
+                .SetKeySerializer(Serializers.Utf8)
+                .SetValueSerializer(Serializers.Utf8)
+                .Build();
+
+            messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
+                if (dr.Error.IsError) {
+                    System.Console.WriteLine(dr.Error.Reason);
+                    throw new System.Exception($"error, {dr.Error.Reason}");
+                }
+            });
+
+            result = await messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
         }
     }
 }

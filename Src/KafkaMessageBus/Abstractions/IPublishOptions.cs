@@ -10,5 +10,6 @@ namespace KafkaMessageBus.Abstractions
         ProducerConfig ProducerConfig { get; set; }
         Action<Error> ErrorHandler { get; set; }
         Action<LogMessage> LogHandler { get; set; }
+        string ProducerName { get; set; }
     }
 }
