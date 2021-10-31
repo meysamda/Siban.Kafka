@@ -40,7 +40,7 @@ namespace KafkaMessageBus
 
         public void AddSubscription<TMessage, TMessageHandler>()
         {
-            var messageName = GetMessageKey<TMessage>();
+            var messageName = GetMessageName<TMessage>();
             AddSubscription<TMessage, TMessageHandler>(messageName);
         }
 
@@ -85,7 +85,7 @@ namespace KafkaMessageBus
 
         public void RemoveSubscription<TMessage, TMessageHandler>()
         {
-            var messageName = GetMessageKey<TMessage>();
+            var messageName = GetMessageName<TMessage>();
             RemoveSubscription<TMessage, TMessageHandler>(messageName);
         }
 
@@ -118,7 +118,7 @@ namespace KafkaMessageBus
 
         public IEnumerable<SubscriptionInfo> GetHandlersForMessage<TMessage>()
         {
-            var key = GetMessageKey<TMessage>();
+            var key = GetMessageName<TMessage>();
             return GetHandlersForMessage(key);
         }
 
@@ -156,7 +156,7 @@ namespace KafkaMessageBus
 
         public bool HasSubscriptionsForMessage<TMessage>()
         {
-            var key = GetMessageKey<TMessage>();
+            var key = GetMessageName<TMessage>();
             return HasSubscriptionsForMessage(key);
         }
 
@@ -176,7 +176,7 @@ namespace KafkaMessageBus
             }
         }
 
-        public string GetMessageKey<TMessage>()
+        public string GetMessageName<TMessage>()
         {
             return typeof(TMessage).Name;
         }

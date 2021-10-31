@@ -6,10 +6,11 @@ namespace KafkaMessageBus
 {
     public class DefaultSubscribeOptions<TKey, TMessage> : ISubscribeOptions<TKey, TMessage>
     {
-        public IMessageBusDeserializer<TKey> KeyDeserializer { get; set; }
-        public IMessageBusDeserializer<TMessage> ValueDeserializer { get; set; }
+        public IDeserializer<TKey> KeyDeserializer { get; set; }
+        public IDeserializer<TMessage> ValueDeserializer { get; set; }
         public ConsumerConfig ConsumerConfig { get; set; }
         public Action<Error> ErrorHandler { get; set; }
         public Action<LogMessage> LogHandler { get; set; }
+        public string ConsumerName { get; set; }
     }
 }

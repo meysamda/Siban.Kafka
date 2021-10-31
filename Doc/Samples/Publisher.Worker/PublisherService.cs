@@ -18,17 +18,40 @@ namespace Samples.Publisher.Worker
         
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _messageBus.Publish("greeting-1", "hello world");
-            _messageBus.Publish("greeting-1", "hello world", options => { /* modify default options */ });
-            await _messageBus.PublishAsync("greeting-1", "hello world");
-            await _messageBus.PublishAsync("greeting-1", "hello world", options => { /* modify default options */ });
-            
-            var message = new Greeting { Body = "hello world" };
+            _messageBus.Publish("greeting-1", "hello world-1", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                },
+                dr => {
+                    if (dr.Error.IsError) {
+                        System.Console.WriteLine(dr.Error.Reason);
+                        throw new System.Exception($"error, {dr.Error.Reason}");
+                    }
+                });
 
-            _messageBus.Publish("greeting-2", message);
-            _messageBus.Publish("greeting-2", message, options => { /* modify default options */ });
-            await _messageBus.PublishAsync("greeting-2", message);
-            await _messageBus.PublishAsync("greeting-2", message, options => { /* modify default options */ });
+            var result = await _messageBus.PublishAsync("greeting-1", "hello world-2", options => {
+                    options.ProducerConfig.ClientId = Dns.GetHostName();
+                    options.ProducerConfig.Acks = Acks.Leader;
+                    options.ProducerConfig.MessageTimeoutMs = 1000;
+                });
+
+            var producerConfig = new ProducerConfig {
+                BootstrapServers = "localhost:9092"
+            };
+            var producer = new ProducerBuilder<string, string>(producerConfig)
+                .SetKeySerializer(Serializers.Utf8)
+                .SetValueSerializer(Serializers.Utf8)
+                .Build();
+
+            _messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
+                if (dr.Error.IsError) {
+                    System.Console.WriteLine(dr.Error.Reason);
+                    throw new System.Exception($"error, {dr.Error.Reason}");
+                }
+            });
+
+            result = await _messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
         }
     }
 }
