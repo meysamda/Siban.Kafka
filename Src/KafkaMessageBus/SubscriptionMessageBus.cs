@@ -180,7 +180,7 @@ namespace KafkaMessageBus
                 while (true)
                 {
                     var consumeResult = consumer.Consume(cancellationToken);
-                    if (consumeResult != null && !consumeResult.IsPartitionEOF && consumeResult.Message.Value != null)
+                    if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
                         await messageProcessor.Process(consumeResult.Message.Value, cancellationToken);
 
@@ -230,7 +230,7 @@ namespace KafkaMessageBus
                 while (true)
                 {
                     var consumeResult = consumer.Consume(cancellationToken);
-                    if (consumeResult != null && !consumeResult.IsPartitionEOF && consumeResult.Message.Value != null)
+                    if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
                         await messageProcessor.Process(consumeResult.Message.Value, cancellationToken);
                     }
