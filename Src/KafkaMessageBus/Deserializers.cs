@@ -21,9 +21,9 @@ namespace KafkaMessageBus
                     var result = MessagePackSerializer.Deserialize<TInMessagePackDeserializer>(data.ToArray());
                     return result;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new Exception("unable to deserialize.", ex);
+                    return default(TInMessagePackDeserializer);
                 }
             }
         }
@@ -39,9 +39,9 @@ namespace KafkaMessageBus
                     var result = JsonSerializer.Deserialize<TInMicrosoftJsonDeserializer>(data);
                     return result;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    throw new Exception("unable to deserialize.", ex);
+                    return default(TInMicrosoftJsonDeserializer);
                 }
             }
         }
