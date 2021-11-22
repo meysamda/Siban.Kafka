@@ -5,6 +5,6 @@ namespace KafkaMessageBus.Abstractions
 {
     public interface IMessageProcessor<in TMessage>
     {
-        Task Process(TMessage message, CancellationToken cancellationToken);
+        Task Process(TMessage message, CancellationToken cancellationToken = default(CancellationToken));
     }
 }
