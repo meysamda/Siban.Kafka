@@ -138,6 +138,11 @@ namespace KafkaMessageBus
             return _publishMessageBus.PublishAsync<TKey, TMessage>(producer, topic, key, message);
         }
 
+        public IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
+        {
+            return _publishMessageBus.GetProducer<TKey, TMessage>(options);
+        }
+
         // ==========
 
         public Task Subscribe(
@@ -251,6 +256,11 @@ namespace KafkaMessageBus
             CancellationToken cancellationToken = default) where TMessageProcessor : IMessageProcessor<TMessage>
         {
             return _subscriptionMessageBus.Subscribe<TKey, TMessage, TMessageProcessor>(topics, consumer, cancellationToken = default);
+        }
+
+        public IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
+        {
+            return _subscriptionMessageBus.GetConsumer<TKey, TMessage>(options);
         }
     }
 }

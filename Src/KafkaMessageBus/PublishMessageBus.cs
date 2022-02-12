@@ -67,6 +67,11 @@ namespace KafkaMessageBus
             Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
         {
             var producer = GetProducer(options);
+            if (producer == null)
+            {
+                var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
+                _producers.Add(producerName, producer);
+            }
 
             var kafkaMessage = new Message<TKey, TMessage> {
                 Key = key,
@@ -148,7 +153,12 @@ namespace KafkaMessageBus
             IPublishOptions<TKey, TMessage> options)
         {
             var producer = GetProducer(options);
-
+            if (producer == null)
+            {
+                var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
+                _producers.Add(producerName, producer);
+            }
+            
             var kafkaMessage = new Message<TKey, TMessage> {
                 Key = key,
                 Value = message
@@ -191,7 +201,7 @@ namespace KafkaMessageBus
 
         // ----------        
 
-        private IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
+        public IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
         {   
             object producerObject;
             var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
@@ -215,8 +225,6 @@ namespace KafkaMessageBus
                         options.LogHandler(logMessage);
                     })
                     .Build();
-
-                _producers.Add(producerName, producer);
             }
 
             return producer;

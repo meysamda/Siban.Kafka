@@ -248,7 +248,7 @@ namespace KafkaMessageBus
             _subsManager.RemoveSubscription<TMessage, TMessageProcessor>();
         }
 
-        private IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
+        public IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
         {            
             var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)

@@ -81,5 +81,8 @@ namespace KafkaMessageBus.Abstractions
             string topic,
             TKey key,
             TMessage message);
+
+        public IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options);
+        
     }
 }

@@ -85,5 +85,7 @@ namespace KafkaMessageBus.Abstractions
             IConsumer<TKey, TMessage> consumer,
             CancellationToken cancellationToken = default(CancellationToken))
             where TMessageProcessor : IMessageProcessor<TMessage>;
+
+        IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options);
     }
 }
