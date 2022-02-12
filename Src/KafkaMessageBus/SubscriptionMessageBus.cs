@@ -267,7 +267,7 @@ namespace KafkaMessageBus
             return consumer;
         }
 
-        private ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
         {
             var messageName = _subsManager.GetMessageName<TMessage>();
 

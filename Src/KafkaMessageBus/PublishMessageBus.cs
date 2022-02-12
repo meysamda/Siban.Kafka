@@ -158,7 +158,7 @@ namespace KafkaMessageBus
                 var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
                 _producers.Add(producerName, producer);
             }
-            
+
             var kafkaMessage = new Message<TKey, TMessage> {
                 Key = key,
                 Value = message
@@ -238,7 +238,7 @@ namespace KafkaMessageBus
             return $"{typeof(TKey).Name}-{typeof(TMessage).Name}-{producerName}";
         }
 
-        private IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>(Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        public IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>(Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
         {
             var options = new DefaultPublishOptions<TKey, TMessage> {
                 KeySerializer = GetDefaultSerializer<TKey>(),

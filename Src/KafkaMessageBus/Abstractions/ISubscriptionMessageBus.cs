@@ -87,5 +87,6 @@ namespace KafkaMessageBus.Abstractions
             where TMessageProcessor : IMessageProcessor<TMessage>;
 
         IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options);
+        ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null);
     }
 }

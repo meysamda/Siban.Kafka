@@ -140,7 +140,12 @@ namespace KafkaMessageBus
 
         public IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
         {
-            return _publishMessageBus.GetProducer<TKey, TMessage>(options);
+            return _publishMessageBus.GetProducer(options);
+        }
+
+        public IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>(Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        {
+            return _publishMessageBus.GetDefaultPublishOptions(defaultOptionsModifier);
         }
 
         // ==========
@@ -260,7 +265,12 @@ namespace KafkaMessageBus
 
         public IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
         {
-            return _subscriptionMessageBus.GetConsumer<TKey, TMessage>(options);
+            return _subscriptionMessageBus.GetConsumer(options);
+        }
+
+        public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        {
+            return _subscriptionMessageBus.GetDefaultSubscribeOptions(defaultOptionsModifier);
         }
     }
 }
