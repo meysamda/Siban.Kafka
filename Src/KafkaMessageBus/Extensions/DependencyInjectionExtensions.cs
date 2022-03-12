@@ -12,10 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection
             DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
             ISubscriptionsManager subsManager = null)
         { 
-            var serviceProvider = services.BuildServiceProvider();
-
             services.AddSingleton<ISubscriptionMessageBus, SubscriptionMessageBus>(sp => {
-                var messageBus = new SubscriptionMessageBus(bootstrapServers, serviceProvider, defaultDeserializer, subsManager);
+                var messageBus = new SubscriptionMessageBus(bootstrapServers, defaultDeserializer, subsManager);
                 return messageBus;
             });
 
@@ -43,10 +41,8 @@ namespace Microsoft.Extensions.DependencyInjection
             DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
             ISubscriptionsManager subsManager = null)
         { 
-            var serviceProvider = services.BuildServiceProvider();
-
             services.AddSingleton<IMessageBus, MessageBus>(sp => {
-                var messageBus = new MessageBus(publishBootstrapServers, subscriptionBootstrapServers, serviceProvider, defaultSerializer, defaultDeserializer, subsManager);
+                var messageBus = new MessageBus(publishBootstrapServers, subscriptionBootstrapServers, defaultSerializer, defaultDeserializer, subsManager);
                 return messageBus;
             });
 

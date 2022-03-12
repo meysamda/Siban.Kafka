@@ -6,12 +6,12 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <PackageId>KafkaMessageBus</PackageId>
-    <Version>1.3.2</Version>
+    <Version>1.4.0</Version>
     <Description>KafkaMessageBus enables you to create a message bus and do publish / subcribe operations simply or in advanced way.</Description>
     <Authors>meysam abasi</Authors>
     <Company>Tech1a Co.</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>Default deserializer returns null when it is unable to deserialize message value / key</PackageReleaseNotes>
+    <PackageReleaseNotes>Removed error prone subscribe methods which were using service provider</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/meysamda/KafkaMessageBus</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
