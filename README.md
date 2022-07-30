@@ -20,57 +20,17 @@ Take a look in the [Samples](https://github.com/meysamda/KafkaMessageBus/tree/ma
 Create a new instance from `PublishMessageBus`, then send a message using Publish or PublishAsync methods on a topic. You should use the PublishAsync method if you would like to wait for the result of your publish requests before proceeding. You might typically want to do this in highly concurrent scenarios, for example in the context of handling web requests. Behind the scenes, the client (Confluent.Kafka) will manage optimizing communication with the Kafka brokers for you, batching requests as appropriate.
 
 ```c#
-using System.Net;
-using System.Threading.Tasks;
-using Confluent.Kafka;
-using KafkaMessageBus;
-
-namespace Samples.Publisher.Console
-{
-    class Program
-    {
-        public static async Task Main(string[] args)
-        {
-            var bootstrapServers = new string[] { "localhost:9092" };
-            var messageBus = new PublishMessageBus(bootstrapServers);
-
-            messageBus.Publish("greeting-1", "hello world-1", options => {
-                    options.ProducerConfig.ClientId = Dns.GetHostName();
-                    options.ProducerConfig.Acks = Acks.Leader;
-                    options.ProducerConfig.MessageTimeoutMs = 1000;
-                },
-                dr => {
-                    if (dr.Error.IsError) {
-                        System.Console.WriteLine(dr.Error.Reason);
-                        throw new System.Exception($"error, {dr.Error.Reason}");
-                    }
-                });
-
-            var result = await messageBus.PublishAsync("greeting-1", "hello world-2", options => {
-                    options.ProducerConfig.ClientId = Dns.GetHostName();
-                    options.ProducerConfig.Acks = Acks.Leader;
-                    options.ProducerConfig.MessageTimeoutMs = 1000;
-                });
-
-            var producerConfig = new ProducerConfig {
-                BootstrapServers = "localhost:9092"
-            };
-            var producer = new ProducerBuilder<string, string>(producerConfig)
-                .SetKeySerializer(Serializers.Utf8)
-                .SetValueSerializer(Serializers.Utf8)
-                .Build();
-
-            messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
-                if (dr.Error.IsError) {
-                    System.Console.WriteLine(dr.Error.Reason);
-                    throw new System.Exception($"error, {dr.Error.Reason}");
-                }
-            });
-
-            result = await messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
+_messageBus.Publish("greeting-1", "hello world-1", options => {
+        options.ProducerConfig.ClientId = Dns.GetHostName();
+        options.ProducerConfig.Acks = Acks.Leader;
+        options.ProducerConfig.MessageTimeoutMs = 1000;
+    },
+    dr => {
+        if (dr.Error.IsError) {
+            System.Console.WriteLine(dr.Error.Reason);
+            throw new System.Exception($"error, {dr.Error.Reason}");
         }
-    }
-}
+    });
 ```
 
 In .NET web applications (or applications with [Microsoft Hosting Extension](https://www.nuget.org/packages/Microsoft.Extensions.Hosting/6.0.0-rc.2.21480.5) package installed) you can register PublishMessageBus as a singlton service. Injecting PublishMessageBus into a service, you can use Publish / PublishAsync methods to produce your messages on desired topics.
@@ -85,142 +45,25 @@ public static void ConfigureServices(IServiceCollection services)
 }
 ```
 
-```c#
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using System.Threading;
-using System;
-using KafkaMessageBus.Abstractions;
-using Samples.Messages;
-
-namespace Samples.Publisher.Worker
-{
-    public class PublisherService : BackgroundService
-    {
-        private readonly IPublishMessageBus _messageBus;
-
-        public PublisherService(IPublishMessageBus messageBus)
-        {
-            _messageBus = messageBus;
-        }
-        
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-        {
-            _messageBus.Publish("greeting-1", "hello world-1", options => {
-                    options.ProducerConfig.ClientId = Dns.GetHostName();
-                    options.ProducerConfig.Acks = Acks.Leader;
-                    options.ProducerConfig.MessageTimeoutMs = 1000;
-                },
-                dr => {
-                    if (dr.Error.IsError) {
-                        System.Console.WriteLine(dr.Error.Reason);
-                        throw new System.Exception($"error, {dr.Error.Reason}");
-                    }
-                });
-
-            var result = await _messageBus.PublishAsync("greeting-1", "hello world-2", options => {
-                    options.ProducerConfig.ClientId = Dns.GetHostName();
-                    options.ProducerConfig.Acks = Acks.Leader;
-                    options.ProducerConfig.MessageTimeoutMs = 1000;
-                });
-
-            var producerConfig = new ProducerConfig {
-                BootstrapServers = "localhost:9092"
-            };
-            var producer = new ProducerBuilder<string, string>(producerConfig)
-                .SetKeySerializer(Serializers.Utf8)
-                .SetValueSerializer(Serializers.Utf8)
-                .Build();
-
-            _messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
-                if (dr.Error.IsError) {
-                    System.Console.WriteLine(dr.Error.Reason);
-                    throw new System.Exception($"error, {dr.Error.Reason}");
-                }
-            });
-
-            result = await _messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
-        }
-    }
-}
-```
-
 ## Subscribe
 
 Create a new instance from `SubscriptionMessageBus`, then subscribe on some topics using Subscribe methods.
 
 ```c#
-using KafkaMessageBus;
-using Samples.Messages;
-using System.Threading.Tasks;
-
-namespace Samples.Subscriber.Console
-{
-    class Program
-    {
-        static async Task Main(string[] args)
-        {
-            var bootstrapServers = new string[] { "localhost:9092" };
-            var messageBus = new SubscriptionMessageBus(bootstrapServers);
-
-            var t1 = messageBus.Subscribe(
-                new string[] { "greeting-1" },
-                message =>
-                {
-                    System.Console.WriteLine(message);
-                    return Task.CompletedTask;
-                }
-            );
-
-            var t2 = messageBus.Subscribe(
-                new string[] { "greeting-1" },
-                message =>
-                {
-                    System.Console.WriteLine(message);
-                    return Task.CompletedTask;
-                },
-                options => { /*modify default options*/ }
-            );
-
-            var t3 = messageBus.Subscribe<Greeting>(
-                new string[] { "greeting-2" },
-                message =>
-                {
-                    System.Console.WriteLine(message.Body);
-                    return Task.CompletedTask;
-                }
-            );
-
-            var t4 = messageBus.Subscribe<Greeting>(
-                new string[] { "greeting-2" },
-                message =>
-                {
-                    System.Console.WriteLine(message.Body);
-                    return Task.CompletedTask;
-                },
-                options => { /*modify default options*/ }
-            );
-
-            // ------
-
-            var t5 = messageBus.Subscribe<GreetingMessageProcessor>(new string[] { "greeting-1" });
-
-            var t6 = messageBus.Subscribe<GreetingMessageProcessor>(
-                new string[] { "greeting-1" },
-                options => { /*modify default options*/ }
-            );
-
-            var t7 = messageBus.Subscribe<Greeting, GreetingMessageProcessor>(new string[] { "greeting-2" });
-
-            var t8 = messageBus.Subscribe<Greeting, GreetingMessageProcessor>(
-                new string[] { "greeting-2" },
-                options => { /*modify default options*/ }
-            );
-
-            await Task.WhenAll(t1, t2, t3, t4, t5, t6, t7, t8);
-        }
-    }
-}
+await _messageBus.Subscribe<Greeting>(
+        new [] { "greeting" },
+        message => { 
+            Console.WriteLine(message.ToString());
+            return Task.CompletedTask;
+        },
+        options => {
+            options.ConsumerConfig.GroupId = "greeting";
+            options.ConsumerConfig.AllowAutoCreateTopics = true;
+            options.ConsumerConfig.EnableAutoCommit = false;
+            options.ConsumerConfig.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+        },
+        cancellationToken
+    );
 ```
 
 In .NET web applications (or applications with [Microsoft Hosting Extension](https://www.nuget.org/packages/Microsoft.Extensions.Hosting/6.0.0-rc.2.21480.5) package installed) you can register SubscriptionMessageBus as a singlton service. Injecting SubscriptionMessageBus into a service, you can use Subscribe methods to listen on some topics and handle consumed messages.
@@ -232,87 +75,6 @@ public static void ConfigureServices(IServiceCollection services)
     services.AddSubscriptionMessageBus(bootstrapServers);
 
     services.AddHostedService<SubscriberService>();
-}
-```
-
-```c#
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using System.Threading;
-using System;
-using KafkaMessageBus.Abstractions;
-using Samples.Messages;
-
-namespace Samples.Subscriber.Worker
-{
-    public class SubscriberService : BackgroundService
-    {
-        private readonly ISubscriptionMessageBus _messageBus;
-
-        public SubscriberService(ISubscriptionMessageBus messageBus)
-        {
-            _messageBus = messageBus;
-        }
-        
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
-        {
-            var t1 = _messageBus.Subscribe(
-                new string[] { "greeting-1" },
-                message =>
-                {
-                    System.Console.WriteLine(message);
-                    return Task.CompletedTask;
-                }
-            );
-
-            var t2 = _messageBus.Subscribe(
-                new string[] { "greeting-1" },
-                message =>
-                {
-                    System.Console.WriteLine(message);
-                    return Task.CompletedTask;
-                },
-                options => { /*modify default options*/ }
-            );
-
-            var t3 = _messageBus.Subscribe<Greeting>(
-                new string[] { "greeting-2" },
-                message =>
-                {
-                    System.Console.WriteLine(message.Body);
-                    return Task.CompletedTask;
-                }
-            );
-
-            var t4 = _messageBus.Subscribe<Greeting>(
-                new string[] { "greeting-2" },
-                message =>
-                {
-                    System.Console.WriteLine(message.Body);
-                    return Task.CompletedTask;
-                },
-                options => { /*modify default options*/ }
-            );
-
-            // ------
-
-            var t5 = _messageBus.Subscribe<GreetingMessageProcessor>(new string[] { "greeting-1" });
-
-            var t6 = _messageBus.Subscribe<GreetingMessageProcessor>(
-                new string[] { "greeting-1" },
-                options => { /*modify default options*/ }
-            );
-
-            var t7 = _messageBus.Subscribe<Greeting, GreetingMessageProcessor>(new string[] { "greeting-2" });
-
-            var t8 = _messageBus.Subscribe<Greeting, GreetingMessageProcessor>(
-                new string[] { "greeting-2" },
-                options => { /*modify default options*/ }
-            );
-
-            await Task.WhenAll(t1, t2, t3, t4, t5, t6, t7, t8);
-        }
-    }
 }
 ```
 

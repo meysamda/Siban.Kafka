@@ -5,19 +5,11 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messages", "Messages\Messages.csproj", "{ACBA0D53-8270-4CF2-A9CC-D9E4FA26DB87}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher.Console", "Publisher.Console\Publisher.Console.csproj", "{8A7F1CC2-A2A6-4F47-8ABB-77D4EA6F5CC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriber", "Subscriber\Subscriber.csproj", "{3634E29C-C213-4693-AFD5-4EF4C30C8DCA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher.Worker", "Publisher.Worker\Publisher.Worker.csproj", "{CCEB3C0B-2FBF-4726-B3AC-5FAD74935EC9}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriber.Console", "Subscriber.Console\Subscriber.Console.csproj", "{995310C1-4849-4E1B-BC83-AEBE1C3BA050}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriber.Worker", "Subscriber.Worker\Subscriber.Worker.csproj", "{3634E29C-C213-4693-AFD5-4EF4C30C8DCA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher.Api", "Publisher.Api\Publisher.Api.csproj", "{70F2920E-C2A7-43D0-9D3A-81494E297A78}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Publisher", "Publisher\Publisher.csproj", "{70F2920E-C2A7-43D0-9D3A-81494E297A78}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "KafkaMessageBus", "..\..\Src\KafkaMessageBus\KafkaMessageBus.csproj", "{BC5ADAB9-E2A7-4089-A402-E9BF988B89BA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriber.Api", "Subscriber.Api\Subscriber.Api.csproj", "{4D42773B-91B8-4658-AFD3-21636C94973C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

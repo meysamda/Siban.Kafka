@@ -1,7 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
-namespace Samples.Publisher.Worker
+namespace Samples.Subscriber
 {
     class Program
     {

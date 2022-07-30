@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using KafkaMessageBus.Abstractions;
 using Confluent.Kafka;
-using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,19 +13,16 @@ namespace KafkaMessageBus
     {
         private readonly IEnumerable<string> _bootstrapServers;
         private readonly DefaultSerializer _defaultDeserializer;
-        private readonly ISubscriptionsManager _subsManager;
 
         public SubscriptionMessageBus(
             IEnumerable<string> bootstrapServers,
-            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
-            ISubscriptionsManager subsManager = null)
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer)
         {
             _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
             if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
             _bootstrapServers = bootstrapServers;
 
             _defaultDeserializer = defaultDeserializer;
-            _subsManager = subsManager ?? new DefaultSubscriptionsManager();
         }
 
         public Task Subscribe(
@@ -68,7 +64,6 @@ namespace KafkaMessageBus
             return Task.Run(async () => {
                 using var consumer = GetConsumer(options);
                 consumer.Subscribe(topics);
-                _subsManager.AddSubscription<TMessage, Func<TMessage, Task>>();
 
                 while (true)
                 {
@@ -112,7 +107,7 @@ namespace KafkaMessageBus
         {
             return Task.Run(async () => {
                 consumer.Subscribe(topics);
-                _subsManager.AddSubscription<TMessage, Func<TMessage, Task>>();
+                // _subsManager.AddSubscription<TMessage, Func<TMessage, Task>>();
 
                 while (true)
                 {
@@ -127,14 +122,6 @@ namespace KafkaMessageBus
 
         // ---------
 
-        private void Unsubscribe<TMessage, TMessageProcessor>()
-        {
-            var messageName = _subsManager.GetMessageName<TMessage>();
-            var processorName = typeof(TMessageProcessor).Name;
-
-            _subsManager.RemoveSubscription<TMessage, TMessageProcessor>();
-        }
-
         public IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
         {            
             var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
@@ -142,7 +129,6 @@ namespace KafkaMessageBus
                 .SetValueDeserializer(options.ValueDeserializer)
                 .SetErrorHandler((consumer, error) => 
                 {
-                    consumer.Dispose();
                     options.ErrorHandler(error);
                 })
                 .SetLogHandler((consumer, logMessage) => 
@@ -156,7 +142,7 @@ namespace KafkaMessageBus
 
         public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
         {
-            var messageName = _subsManager.GetMessageName<TMessage>();
+            var messageName = GetMessageName<TMessage>();
 
             var options = new DefaultSubscribeOptions<TKey, TMessage> {
                 KeyDeserializer = GetDefaultDeserializer<TKey>(),
@@ -203,5 +189,7 @@ namespace KafkaMessageBus
                     return Deserializers<T>.MicrosoftJson;
             }
         }
+
+        private string GetMessageName<TMessage>() => typeof(TMessage).Name;
     }
 }
