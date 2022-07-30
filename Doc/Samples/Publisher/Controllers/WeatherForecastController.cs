@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using Confluent.Kafka;
 using KafkaMessageBus.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Samples.Messages;
 
-namespace Samples.Publisher.Api.Controllers
+namespace Samples.Publisher.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -29,7 +30,7 @@ namespace Samples.Publisher.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IEnumerable<WeatherForecast>> Get()
+        public IEnumerable<WeatherForecast> Get()
         {
             _messageBus.Publish("greeting-1", "hello world-1", options => {
                     options.ProducerConfig.ClientId = Dns.GetHostName();
@@ -42,29 +43,6 @@ namespace Samples.Publisher.Api.Controllers
                         throw new System.Exception($"error, {dr.Error.Reason}");
                     }
                 });
-
-            var result = await _messageBus.PublishAsync("greeting-1", "hello world-2", options => {
-                    options.ProducerConfig.ClientId = Dns.GetHostName();
-                    options.ProducerConfig.Acks = Acks.Leader;
-                    options.ProducerConfig.MessageTimeoutMs = 1000;
-                });
-
-            var producerConfig = new ProducerConfig {
-                BootstrapServers = "localhost:9092"
-            };
-            var producer = new ProducerBuilder<string, string>(producerConfig)
-                .SetKeySerializer(Serializers.Utf8)
-                .SetValueSerializer(Serializers.Utf8)
-                .Build();
-
-            _messageBus.Publish(producer, "greeting-1", "hello world-3", dr => { 
-                if (dr.Error.IsError) {
-                    System.Console.WriteLine(dr.Error.Reason);
-                    throw new System.Exception($"error, {dr.Error.Reason}");
-                }
-            });
-
-            result = await _messageBus.PublishAsync(producer, "greeting-1", "hello world-4");
 
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

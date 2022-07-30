@@ -1,6 +1,6 @@
 using System;
 
-namespace Samples.Subscriber.Api
+namespace Samples.Publisher
 {
     public class WeatherForecast
     {

@@ -9,11 +9,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddSubscriptionMessageBus(
             this IServiceCollection services,
             IEnumerable<string> bootstrapServers,
-            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
-            ISubscriptionsManager subsManager = null)
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer)
         { 
             services.AddSingleton<ISubscriptionMessageBus, SubscriptionMessageBus>(sp => {
-                var messageBus = new SubscriptionMessageBus(bootstrapServers, defaultDeserializer, subsManager);
+                var messageBus = new SubscriptionMessageBus(bootstrapServers, defaultDeserializer);
                 return messageBus;
             });
 
@@ -38,11 +37,10 @@ namespace Microsoft.Extensions.DependencyInjection
             IEnumerable<string> publishBootstrapServers,
             IEnumerable<string> subscriptionBootstrapServers,
             DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer,
-            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer,
-            ISubscriptionsManager subsManager = null)
+            DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer)
         { 
             services.AddSingleton<IMessageBus, MessageBus>(sp => {
-                var messageBus = new MessageBus(publishBootstrapServers, subscriptionBootstrapServers, defaultSerializer, defaultDeserializer, subsManager);
+                var messageBus = new MessageBus(publishBootstrapServers, subscriptionBootstrapServers, defaultSerializer, defaultDeserializer);
                 return messageBus;
             });
 

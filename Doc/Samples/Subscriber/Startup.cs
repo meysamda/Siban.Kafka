@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace Samples.Publisher.Worker
+namespace Samples.Subscriber
 {
     public static class Startup
     {
         public static void ConfigureServices(IServiceCollection services)
         {            
             var bootstrapServers = new string[] { "localhost:9092" };
-            services.AddPublishMessageBus(bootstrapServers);
+            services.AddSubscriptionMessageBus(bootstrapServers);
 
-            services.AddHostedService<PublisherService>();
+            services.AddHostedService<SubscriberService>();
         }
     }
 }
