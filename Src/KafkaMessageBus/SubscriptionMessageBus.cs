@@ -25,44 +25,44 @@ namespace KafkaMessageBus
             _defaultDeserializer = defaultDeserializer;
         }
 
-        public Task Subscribe(
+        public Task SubscribeAsync(
             IEnumerable<string> topics,
             Func<string, Task> messageProcessor,
             Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            var options = GetDefaultSubscribeOptions<string, string>(defaultOptionsModifier);
-            return Subscribe<string, string>(topics, messageProcessor, options, cancellationToken);
+            var options = GetDefaultSubscribeOptions(defaultOptionsModifier);
+            return Subscribe(topics, messageProcessor, options, cancellationToken);
         }
 
-        public Task Subscribe<TMessage>(
+        public Task SubscribeAsync<TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            var options = GetDefaultSubscribeOptions<string, TMessage>(defaultOptionsModifier);
-            return Subscribe<string, TMessage>(topics, messageProcessor, options, cancellationToken);
+            var options = GetDefaultSubscribeOptions(defaultOptionsModifier);
+            return Subscribe(topics, messageProcessor, options, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage>(
+        public Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            var options = GetDefaultSubscribeOptions<TKey, TMessage>(defaultOptionsModifier);
-            return Subscribe<TKey, TMessage>(topics, messageProcessor, options, cancellationToken);
+            var options = GetDefaultSubscribeOptions(defaultOptionsModifier);
+            return Subscribe(topics, messageProcessor, options, cancellationToken);
         }
 
         private Task Subscribe<TKey, TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             ISubscribeOptions<TKey, TMessage> options,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.Run(async () => {
-                using var consumer = GetConsumer(options);
+                using var consumer = GetConfluentKafkaConsumer(options);
                 consumer.Subscribe(topics);
 
                 while (true)
@@ -81,49 +81,9 @@ namespace KafkaMessageBus
 
         // -----------
 
-        public Task Subscribe(
-            IEnumerable<string> topics,
-            Func<string, Task> messageProcessor,
-            IConsumer<string, string> consumer,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null)
         {
-            return Subscribe<string, string>(topics, messageProcessor, consumer, cancellationToken);
-        }
-
-        public Task Subscribe<TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
-            IConsumer<string, TMessage> consumer,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return Subscribe<string, TMessage>(topics, messageProcessor, consumer, cancellationToken);
-        }
-
-        public Task Subscribe<TKey, TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
-            IConsumer<TKey, TMessage> consumer,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return Task.Run(async () => {
-                consumer.Subscribe(topics);
-                // _subsManager.AddSubscription<TMessage, Func<TMessage, Task>>();
-
-                while (true)
-                {
-                    var consumeResult = consumer.Consume(cancellationToken);
-                    if (consumeResult != null && !consumeResult.IsPartitionEOF)
-                    {
-                        await messageProcessor(consumeResult.Message.Value);
-                    }
-                }
-            }, cancellationToken);
-        }
-
-        // ---------
-
-        public IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
-        {            
+            options ??= GetDefaultSubscribeOptions<TKey, TMessage>();
             var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)
                 .SetValueDeserializer(options.ValueDeserializer)
@@ -169,25 +129,19 @@ namespace KafkaMessageBus
                 }
             };
 
-            if (defaultOptionsModifier != null)
-                defaultOptionsModifier(options);
+            defaultOptionsModifier?.Invoke(options);
 
             return options;
         }
 
         private IDeserializer<T> GetDefaultDeserializer<T>() 
         {
-            switch (_defaultDeserializer)
+            return _defaultDeserializer switch
             {
-                case DefaultSerializer.MicrosoftJsonSerializer:
-                    return Deserializers<T>.MicrosoftJson;
-                
-                case DefaultSerializer.MessagePackSerializer:
-                    return Deserializers<T>.MicrosoftJson;
-
-                default:
-                    return Deserializers<T>.MicrosoftJson;
-            }
+                DefaultSerializer.MicrosoftJsonSerializer => Deserializers<T>.MicrosoftJson,
+                DefaultSerializer.MessagePackSerializer => Deserializers<T>.MicrosoftJson,
+                _ => Deserializers<T>.MicrosoftJson,
+            };
         }
 
         private string GetMessageName<TMessage>() => typeof(TMessage).Name;

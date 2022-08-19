@@ -8,45 +8,25 @@ namespace KafkaMessageBus.Abstractions
 {    
     public interface ISubscriptionMessageBus
     {
-        Task Subscribe(
+        Task SubscribeAsync(
             IEnumerable<string> topics,
-            Func<string, Task> messageProcessor,
+            Func<string, Dictionary<string, byte[]>, Task> messageProcessor,
             Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
         
-        Task Subscribe<TMessage>(
+        Task SubscribeAsync<TMessage>(
             IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
+            Func<TMessage, Dictionary<string, byte[]>, Task> messageProcessor,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
-        Task Subscribe<TKey, TMessage>(
+        Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
+            Func<TMessage, Dictionary<string, byte[]>, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
-        // -----
-
-        Task Subscribe(
-            IEnumerable<string> topics,
-            Func<string, Task> messageProcessor,
-            IConsumer<string, string> consumer,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        Task Subscribe<TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
-            IConsumer<string, TMessage> consumer,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        Task Subscribe<TKey, TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
-            IConsumer<TKey, TMessage> consumer,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options);
+        IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null);
         ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null);
     }
 }

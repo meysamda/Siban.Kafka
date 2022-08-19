@@ -22,7 +22,7 @@ namespace Samples.Subscriber
         {
             try
             {
-                await _messageBus.Subscribe<Greeting>(
+                await _messageBus.SubscribeAsync<Greeting>(
                     new [] { "greeting" },
                     message => { 
                         Console.WriteLine(message.ToString());

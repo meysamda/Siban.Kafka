@@ -39,7 +39,7 @@ namespace KafkaMessageBus
             Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
             Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
         {
-            _publishMessageBus.Publish<TMessage>(topic, message, defaultOptionsModifier, deliveryHandler);
+            _publishMessageBus.Publish(topic, message, defaultOptionsModifier, deliveryHandler);
         }
 
         public void Publish<TKey, TMessage>(
@@ -49,37 +49,7 @@ namespace KafkaMessageBus
             Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null,
             Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
         {
-            _publishMessageBus.Publish<TKey, TMessage>(topic, key, message, defaultOptionsModifier, deliveryHandler);
-        }
-
-        // ---------
-
-        public void Publish(
-            IProducer<string, string> producer,
-            string topic,
-            string message,
-            Action<DeliveryReport<string, string>> deliveryHandler = null)
-        {
-            _publishMessageBus.Publish(producer, topic, message, deliveryHandler);
-        }
-
-        public void Publish<TMessage>(
-            IProducer<string, TMessage> producer,
-            string topic,
-            TMessage message,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
-        {
-            _publishMessageBus.Publish(producer, topic, message, deliveryHandler = null);
-        }
-
-        public void Publish<TKey, TMessage>(
-            IProducer<TKey, TMessage> producer,
-            string topic,
-            TKey key,
-            TMessage message,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
-        {
-            _publishMessageBus.Publish(producer, topic, key, message, deliveryHandler);
+            _publishMessageBus.Publish(topic, key, message, defaultOptionsModifier, deliveryHandler);
         }
 
         // ---------
@@ -97,7 +67,7 @@ namespace KafkaMessageBus
             TMessage message,
             Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null)
         {
-            return _publishMessageBus.PublishAsync<TMessage>(topic, message, defaultOptionsModifier);
+            return _publishMessageBus.PublishAsync(topic, message, defaultOptionsModifier);
         }
 
         public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
@@ -106,35 +76,10 @@ namespace KafkaMessageBus
             TMessage message,
             Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
         {
-            return _publishMessageBus.PublishAsync<TKey, TMessage>(topic, key, message, defaultOptionsModifier);
+            return _publishMessageBus.PublishAsync(topic, key, message, defaultOptionsModifier);
         }
 
         // ---------
-
-        public Task<DeliveryResult<string, string>> PublishAsync(
-            IProducer<string, string> producer,
-            string topic,
-            string message)
-        {
-            return _publishMessageBus.PublishAsync(producer, topic, message);
-        }
-
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
-            IProducer<string, TMessage> producer,
-            string topic,
-            TMessage message)
-        {
-            return _publishMessageBus.PublishAsync<TMessage>(producer, topic, message);
-        }
-
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
-            IProducer<TKey, TMessage> producer,
-            string topic,
-            TKey key,
-            TMessage message)
-        {
-            return _publishMessageBus.PublishAsync<TKey, TMessage>(producer, topic, key, message);
-        }
 
         public IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
         {
@@ -148,67 +93,38 @@ namespace KafkaMessageBus
 
         // ==========
 
-        public Task Subscribe(
+        public Task SubscribeAsync(
             IEnumerable<string> topics,
             Func<string, Task> messageProcessor,
             Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.Subscribe(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
 
-        public Task Subscribe<TMessage>(
+        public Task SubscribeAsync<TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.Subscribe<TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+            return _subscriptionMessageBus.SubscribeAsync<TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
 
-        public Task Subscribe<TKey, TMessage>(
+        public Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
             Func<TMessage, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.Subscribe<TKey, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
 
         // ---------
 
-        public Task Subscribe(
-            IEnumerable<string> topics,
-            Func<string, Task> messageProcessor,
-            IConsumer<string, string> consumer,
-            CancellationToken cancellationToken = default)
+        public IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
         {
-            return _subscriptionMessageBus.Subscribe(topics, messageProcessor, consumer, cancellationToken);
-        }
-
-        public Task Subscribe<TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
-            IConsumer<string, TMessage> consumer,
-            CancellationToken cancellationToken = default)
-        {
-            return _subscriptionMessageBus.Subscribe<TMessage>(topics, messageProcessor, consumer, cancellationToken);
-        }
-
-        public Task Subscribe<TKey, TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Task> messageProcessor,
-            IConsumer<TKey, TMessage> consumer,
-            CancellationToken cancellationToken = default)
-        {
-            return _subscriptionMessageBus.Subscribe<TKey, TMessage>(topics, messageProcessor, consumer, cancellationToken);
-        }
-
-        // ---------
-
-        public IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
-        {
-            return _subscriptionMessageBus.GetConsumer(options);
+            return _subscriptionMessageBus.GetConfluentKafkaConsumer(options);
         }
 
         public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)

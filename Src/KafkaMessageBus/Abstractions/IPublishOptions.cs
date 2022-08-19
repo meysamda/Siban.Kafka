@@ -11,5 +11,6 @@ namespace KafkaMessageBus.Abstractions
         Action<Error> ErrorHandler { get; set; }
         Action<LogMessage> LogHandler { get; set; }
         string ProducerName { get; set; }
+        public bool AddCurrentActivtyTraceContext { get; set; }
     }
 }

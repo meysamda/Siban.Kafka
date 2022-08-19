@@ -14,7 +14,7 @@ namespace KafkaMessageBus
         {
             public TInMessagePackDeserializer Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
             {
-                if (isNull) return default(TInMessagePackDeserializer);
+                if (isNull) return default;
 
                 try
                 {
@@ -23,7 +23,7 @@ namespace KafkaMessageBus
                 }
                 catch
                 {
-                    return default(TInMessagePackDeserializer);
+                    return default;
                 }
             }
         }
@@ -32,7 +32,7 @@ namespace KafkaMessageBus
         {
             public TInMicrosoftJsonDeserializer Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
             {
-                if (isNull) return default(TInMicrosoftJsonDeserializer);
+                if (isNull) return default;
 
                 try
                 {
@@ -41,7 +41,7 @@ namespace KafkaMessageBus
                 }
                 catch
                 {
-                    return default(TInMicrosoftJsonDeserializer);
+                    return default;
                 }
             }
         }

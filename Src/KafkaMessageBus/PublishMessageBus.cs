@@ -12,7 +12,7 @@ namespace KafkaMessageBus
     {
         private readonly IEnumerable<string> _bootstrapServers;
         private readonly DefaultSerializer _defaultSerializer;
-        private Dictionary<string, object> _producers;
+        private readonly Dictionary<string, object> _producers;
 
         public PublishMessageBus(
             IEnumerable<string> bootstrapServers,
@@ -31,41 +31,32 @@ namespace KafkaMessageBus
         public void Publish(
             string topic,
             string message,
+            Dictionary<string, byte[]> headers = null,
             Action<IPublishOptions<string, string>> defaultOptionsModifier = null,
             Action<DeliveryReport<string, string>> deliveryHandler = null)
         {
-            var options = GetDefaultPublishOptions<string, string>(defaultOptionsModifier);
-            Publish<string, string>(topic, null, message, options, deliveryHandler);
+            Publish(topic, null, message, headers, defaultOptionsModifier, deliveryHandler);
         }
 
         public void Publish<TMessage>(
             string topic,
             TMessage message,
+            Dictionary<string, byte[]> headers = null,
             Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
             Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
         {
-            var options = GetDefaultPublishOptions<string, TMessage>(defaultOptionsModifier);
-            Publish<string, TMessage>(topic, null, message, options, deliveryHandler);
+            Publish(topic, null, message, headers, defaultOptionsModifier, deliveryHandler);
         }
 
         public void Publish<TKey, TMessage>(
             string topic,
             TKey key,
             TMessage message,
+            Dictionary<string, byte[]> headers = null,
             Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null,
             Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
         {
-            var options = GetDefaultPublishOptions<TKey, TMessage>(defaultOptionsModifier);
-            Publish<TKey, TMessage>(topic, key, message, options, deliveryHandler);
-        }
-
-        private void Publish<TKey, TMessage>(
-            string topic,
-            TKey key,
-            TMessage message,
-            IPublishOptions<TKey, TMessage> options,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
-        {
+            var options = GetDefaultPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
             if (producer == null)
             {
@@ -73,44 +64,14 @@ namespace KafkaMessageBus
                 _producers.Add(producerName, producer);
             }
 
+            var kafkaHeaders = new Headers();
+            foreach (var header in headers)
+                kafkaHeaders.Add(new Header(header.Key, header.Value));
+
             var kafkaMessage = new Message<TKey, TMessage> {
                 Key = key,
-                Value = message
-            };
-            
-            producer.Produce(topic, kafkaMessage, deliveryHandler);
-        }
-
-        // ----------
-
-        public void Publish(
-            IProducer<string, string> producer,
-            string topic,
-            string message,
-            Action<DeliveryReport<string, string>> deliveryHandler = null)
-        {
-            Publish<string, string>(producer, topic, null, message, deliveryHandler);
-        }
-
-        public void Publish<TMessage>(
-            IProducer<string, TMessage> producer,
-            string topic,
-            TMessage message,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
-        {
-            Publish<string, TMessage>(producer, topic, null, message, deliveryHandler);
-        }
-
-        public void Publish<TKey, TMessage>(
-            IProducer<TKey, TMessage> producer,
-            string topic,
-            TKey key,
-            TMessage message,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
-        {
-            var kafkaMessage = new Message<TKey, TMessage> {
-                Key = key,
-                Value = message
+                Value = message,
+                Headers = kafkaHeaders
             };
             
             producer.Produce(topic, kafkaMessage, deliveryHandler);
@@ -121,37 +82,29 @@ namespace KafkaMessageBus
         public Task<DeliveryResult<string, string>> PublishAsync(
             string topic,
             string message,
+            Dictionary<string, byte[]> headers = null,
             Action<IPublishOptions<string, string>> defaultOptionsModifier = null)
         {
-            var options = GetDefaultPublishOptions<string, string>(defaultOptionsModifier);
-            return PublishAsync<string, string>(topic, null, message, options);
+            return PublishAsync(topic, null, message, headers, defaultOptionsModifier);
         }
 
         public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
             string topic,
             TMessage message,
+            Dictionary<string, byte[]> headers = null,
             Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null)
         {
-            var options = GetDefaultPublishOptions<string, TMessage>(defaultOptionsModifier);
-            return PublishAsync<string, TMessage>(topic, null, message, options);
+            return PublishAsync(topic, null, message, headers, defaultOptionsModifier);
         }
 
         public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
             string topic,
             TKey key,
             TMessage message,
+            Dictionary<string, byte[]> headers = null,
             Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
         {
-            var options = GetDefaultPublishOptions<TKey, TMessage>(defaultOptionsModifier);
-            return PublishAsync<TKey, TMessage>(topic, key, message, options);
-        }
-
-        private Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
-            string topic,
-            TKey key,
-            TMessage message,
-            IPublishOptions<TKey, TMessage> options)
-        {
+            var options = GetDefaultPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
             if (producer == null)
             {
@@ -159,41 +112,14 @@ namespace KafkaMessageBus
                 _producers.Add(producerName, producer);
             }
 
+            var kafkaHeaders = new Headers();
+            foreach (var header in headers)
+                kafkaHeaders.Add(new Header(header.Key, header.Value));
+
             var kafkaMessage = new Message<TKey, TMessage> {
                 Key = key,
-                Value = message
-            };
-            
-            return producer.ProduceAsync(topic, kafkaMessage);
-        }
-
-        // ----------   
-
-        public Task<DeliveryResult<string, string>> PublishAsync(
-            IProducer<string, string> producer,
-            string topic,
-            string message)
-        {
-            return PublishAsync<string, string>(producer, topic, null, message);
-        }
-
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
-            IProducer<string, TMessage> producer,
-            string topic,
-            TMessage message)
-        {
-            return PublishAsync<string, TMessage>(producer, topic, null, message);
-        }
-
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
-            IProducer<TKey, TMessage> producer,
-            string topic,
-            TKey key,
-            TMessage message)
-        {
-            var kafkaMessage = new Message<TKey, TMessage> {
-                Key = key,
-                Value = message
+                Value = message,
+                Headers = kafkaHeaders
             };
             
             return producer.ProduceAsync(topic, kafkaMessage);
@@ -202,10 +128,9 @@ namespace KafkaMessageBus
         // ----------        
 
         public IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
-        {   
-            object producerObject;
+        {
             var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
-            _producers.TryGetValue(producerName, out producerObject);
+            _producers.TryGetValue(producerName, out object producerObject);
 
             IProducer<TKey, TMessage> producer;
             if (producerObject != null)
@@ -260,33 +185,19 @@ namespace KafkaMessageBus
                 }
             };
 
-            if (defaultOptionsModifier != null)
-                defaultOptionsModifier(options);
+            defaultOptionsModifier?.Invoke(options);
 
             return options;
         }
 
-        private void DefaultDeliveryReportHandler<TKey, TMessage>(DeliveryReport<TKey, TMessage> deliveryReport)
-        {
-            if (deliveryReport.Error.IsError)
-            {
-                throw new Exception($"producing message on topic {deliveryReport.Topic} failed; reason: {deliveryReport.Error.Reason}, details: {deliveryReport.Error.ToString()}");
-            }
-        }
-
         private ISerializer<T> GetDefaultSerializer<T>() 
         {
-            switch (_defaultSerializer)
+            return _defaultSerializer switch
             {
-                case DefaultSerializer.MicrosoftJsonSerializer:
-                    return Serializers<T>.MicrosoftJson;
-                
-                case DefaultSerializer.MessagePackSerializer:
-                    return Serializers<T>.MessagePack;
-
-                default:
-                    return Serializers<T>.MicrosoftJson;
-            }
+                DefaultSerializer.MicrosoftJsonSerializer => Serializers<T>.MicrosoftJson,
+                DefaultSerializer.MessagePackSerializer => Serializers<T>.MessagePack,
+                _ => Serializers<T>.MicrosoftJson,
+            };
         }
     }
 }
