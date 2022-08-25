@@ -24,16 +24,6 @@ namespace Siban.Kafka
 
         // ---------
 
-        public void Publish(
-            string topic,
-            string message,
-            Headers headers = null,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, string>> deliveryHandler = null)
-        {
-            _publishMessageBus.Publish(topic, message, headers, defaultOptionsModifier, deliveryHandler);
-        }
-
         public void Publish<TMessage>(
             string topic,
             TMessage message,
@@ -56,15 +46,6 @@ namespace Siban.Kafka
         }
 
         // ---------
-
-        public Task<DeliveryResult<string, string>> PublishAsync(
-            string topic,
-            string message,
-            Headers headers = null,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier = null)
-        {
-            return _publishMessageBus.PublishAsync(topic, message, headers, defaultOptionsModifier);
-        }
 
         public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
             string topic,
@@ -99,27 +80,9 @@ namespace Siban.Kafka
 
         // ==========
 
-        public Task SubscribeAsync(
-            IEnumerable<string> topics,
-            Func<string, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default)
-        {
-            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
-        public Task SubscribeAsync<TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default)
-        {
-            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
         public Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
-            Func<TMessage, Headers, Task> messageProcessor,
+            Func<TKey, TMessage, Headers, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
