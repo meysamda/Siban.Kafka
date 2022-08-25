@@ -6,13 +6,6 @@ namespace Siban.Kafka.Abstractions
 {
     public interface IPublishMessageBus
     {        
-        void Publish(
-            string topic,
-            string message,
-            Headers headers = null,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, string>> deliveryHandler = null);
-
         void Publish<TMessage>(
             string topic,
             TMessage message,
@@ -30,12 +23,6 @@ namespace Siban.Kafka.Abstractions
         
         // -----
 
-        Task<DeliveryResult<string, string>> PublishAsync(
-            string topic,
-            string message,
-            Headers headers = null,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier = null);
-        
         Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
             string topic,
             TMessage message,

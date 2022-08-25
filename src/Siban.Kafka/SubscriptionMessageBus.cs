@@ -24,27 +24,9 @@ namespace Siban.Kafka
             _defaultDeserializer = defaultDeserializer;
         }
 
-        public Task SubscribeAsync(
-            IEnumerable<string> topics,
-            Func<string, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, string>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default)
-        {
-            return SubscribeAsync<string>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
-        public Task SubscribeAsync<TMessage>(
-            IEnumerable<string> topics,
-            Func<TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default)
-        {
-            return SubscribeAsync<string, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
         public Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
-            Func<TMessage, Headers, Task> messageProcessor,
+            Func<TKey, TMessage, Headers, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -59,7 +41,7 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        await messageProcessor(consumeResult.Message.Value, consumeResult.Message.Headers);
+                        await messageProcessor(consumeResult.Message.Key, consumeResult.Message.Value, consumeResult.Message.Headers);
 
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
