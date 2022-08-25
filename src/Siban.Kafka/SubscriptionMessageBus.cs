@@ -24,6 +24,15 @@ namespace Siban.Kafka
             _defaultDeserializer = defaultDeserializer;
         }
 
+        public Task SubscribeAsync<TMessage>(
+            IEnumerable<string> topics,
+            Func<string, TMessage, Headers, Task> messageProcessor,
+            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
+        {
+            return SubscribeAsync<string, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+        }
+
         public Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
             Func<TKey, TMessage, Headers, Task> messageProcessor,

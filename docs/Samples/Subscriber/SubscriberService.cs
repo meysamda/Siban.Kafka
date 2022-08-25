@@ -23,11 +23,11 @@ namespace Siban.Kafka.Samples.Subscriber
             {
                 await _messageBus.SubscribeAsync<Greeting>(
                     new [] { "greeting-1" },
-                    // (message, headers) => { 
+                    // (key, message, headers) => { 
                     //     Console.WriteLine(message.ToString());
                     //     return Task.CompletedTask;
                     // },
-                    (message, headers) => _processor.Process(message, headers, cancellationToken),
+                    (key, message, headers) => _processor.Process(message, headers, cancellationToken),
                     options => {
                         options.ConsumerConfig.GroupId = "greeting-1";
                         options.ConsumerConfig.AllowAutoCreateTopics = true;
