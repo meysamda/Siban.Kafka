@@ -1,19 +1,19 @@
 # Introduction 
-**KafkaMessageBus** enables you to create a message bus and do publish / subcribe operations simply or in advanced way. it is an abstraction on [Confluent.Kafka](https://github.com/confluentinc/confluent-kafka-dotnet/) which is Confluent's .NET client for [Apache Kafka](kafka.apache.org) and the [Confluent Platform](https://www.confluent.io/product/).
+**Siban.Kafka** is an abstraction on top of [Confluent.Kafka](https://github.com/confluentinc/confluent-kafka-dotnet/) which is Confluent's .NET client for [Apache Kafka](kafka.apache.org) and the [Confluent Platform](https://www.confluent.io/product/). It enables you to create a message bus and do publish / subcribe operations simply or in advanced way.
 
 # Referencing
-KafkaMessageBus is distributed via NuGet in [KafkaMessageBus](https://www.nuget.org/packages/KafkaMessageBus/) package.
+Siban.Kafka is distributed via NuGet in [Siban.Kafka](https://www.nuget.org/packages/Siban.Kafka/) package.
 
-To install KafkaMessageBus from within Visual Studio, search for KafkaMessageBus in the NuGet Package Manager UI, or run the following command in the Package Manager Console:
+To install Siban.Kafka from within Visual Studio, search for Siban.Kafka in the NuGet Package Manager UI, or run the following command in the Package Manager Console:
 
-`Install-Package KafkaMessageBus -Version <last-version>`
+`Install-Package Siban.Kafka -Version <last-version>`
 
 To add a reference to a dotnet core project, execute the following at the command line:
 
-`dotnet add package -v <last-version> KafkaMessageBus`
+`dotnet add package -v <last-version> Siban.Kafka`
 
 # Usage
-Take a look in the [Samples](https://github.com/meysamda/KafkaMessageBus/tree/master/Doc/Samples) directory for example usage. As you can see all you need is to initiate a message bus and then do publish / subscribe operations upon it.
+Take a look in the [Samples](https://github.com/meysamda/Siban.Kafka/tree/master/docs/Samples) directory for example usage. As you can see all you need is to initiate a message bus and then do publish / subscribe operations upon it.
 
 ## Publish
 
