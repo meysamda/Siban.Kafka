@@ -14,10 +14,10 @@ namespace Siban.Kafka.Samples.Publisher
     public class MyController : ControllerBase
     {
 
-        private readonly IPublishMessageBus _messageBus;
+        private readonly IMessageBus _messageBus;
         private readonly ILogger<MyController> _logger;
 
-        public MyController(ILogger<MyController> logger, IPublishMessageBus messageBus)
+        public MyController(ILogger<MyController> logger, IMessageBus messageBus)
         {
             _logger = logger;
             _messageBus = messageBus;

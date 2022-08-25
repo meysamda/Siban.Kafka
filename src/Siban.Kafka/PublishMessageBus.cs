@@ -25,16 +25,6 @@ namespace Siban.Kafka
         }
 
         // ----------
-        
-        public void Publish(
-            string topic,
-            string message,
-            Headers headers = null,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, string>> deliveryHandler = null)
-        {
-            Publish(topic, null, message, headers, defaultOptionsModifier, deliveryHandler);
-        }
 
         public void Publish<TMessage>(
             string topic,
@@ -73,14 +63,6 @@ namespace Siban.Kafka
 
         // ----------
 
-        public Task<DeliveryResult<string, string>> PublishAsync(
-            string topic,
-            string message,
-            Headers headers = null,
-            Action<IPublishOptions<string, string>> defaultOptionsModifier = null)
-        {
-            return PublishAsync(topic, null, message, headers, defaultOptionsModifier);
-        }
 
         public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
             string topic,
