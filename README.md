@@ -85,7 +85,7 @@ In .NET web applications (or applications with [Microsoft Hosting Extension](htt
 public static void ConfigureServices(IServiceCollection services)
 {            
     var bootstrapServers = new string[] { "localhost:9092" };
-    services.AddMessageBus(bootstrapServers, bootstrapServers, services);
+    services.AddMessageBus(bootstrapServers, bootstrapServers);
 
     services.AddHostedService<SubscriberService>();
     services.AddHostedService<PublisherService>();
