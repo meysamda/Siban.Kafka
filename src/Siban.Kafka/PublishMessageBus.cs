@@ -114,7 +114,6 @@ namespace Siban.Kafka
                     .SetValueSerializer(options.ValueSerializer)
                     .SetErrorHandler((producer, error) => 
                     {
-                        producer.Dispose();
                         options.ErrorHandler(error);
                     })
                     .SetLogHandler((producer, logMessage) => 
@@ -138,14 +137,11 @@ namespace Siban.Kafka
                 },
                 ErrorHandler = error => 
                 {
-                    if (error.IsError)
-                    {
-                        throw new Exception($"building kafka producer failed. {error.Reason}");
-                    }
+                    // default error handler
                 },
                 LogHandler = logMessage => 
                 {
-                    // do some thing with log message
+                    // default log handler
                 }
             };
 
