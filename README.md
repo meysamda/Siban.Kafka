@@ -28,7 +28,6 @@ _messageBus.Publish("greeting-1", "hello world-1", options => {
     dr => {
         if (dr.Error.IsError) {
             System.Console.WriteLine(dr.Error.Reason);
-            throw new System.Exception($"error, {dr.Error.Reason}");
         }
     });
 ```
