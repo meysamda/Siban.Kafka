@@ -106,7 +106,6 @@ namespace Siban.Kafka
                     .SetValueSerializer(options.ValueSerializer)
                     .SetErrorHandler((producer, error) => 
                     {
-                        producer.Dispose();
                         options.ErrorHandler(error);
                     })
                     .SetLogHandler((producer, logMessage) => 
