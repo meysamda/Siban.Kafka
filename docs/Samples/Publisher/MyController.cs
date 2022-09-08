@@ -26,7 +26,7 @@ namespace Siban.Kafka.Samples.Publisher
         [HttpGet]
         public bool Get()
         {
-            _messageBus.Publish("greeting-1", "hello world-1", null, options => {
+            _messageBus.Publish("greeting-1", "hello world-1", options => {
                     options.ProducerConfig.ClientId = Dns.GetHostName();
                     options.ProducerConfig.Acks = Acks.Leader;
                     options.ProducerConfig.MessageTimeoutMs = 1000;

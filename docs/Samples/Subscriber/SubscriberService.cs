@@ -27,7 +27,7 @@ namespace Siban.Kafka.Samples.Subscriber
                     //     Console.WriteLine(message.ToString());
                     //     return Task.CompletedTask;
                     // },
-                    (key, message, headers) => _processor.Process(message, headers, cancellationToken),
+                    (message, stoppingToken) => _processor.Process(message, stoppingToken),
                     options => {
                         options.ConsumerConfig.GroupId = "greeting-1";
                         options.ConsumerConfig.AllowAutoCreateTopics = true;

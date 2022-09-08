@@ -26,23 +26,14 @@ namespace Siban.Kafka
 
         public Task SubscribeAsync<TMessage>(
             IEnumerable<string> topics,
-            Func<string, TMessage, Headers, Task> messageProcessor,
+            Func<TMessage, CancellationToken, Task> messageProcessor,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
-            return SubscribeAsync<string, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
-        public Task SubscribeAsync<TKey, TMessage>(
-            IEnumerable<string> topics,
-            Func<TKey, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default)
-        {
-            var options = GetDefaultSubscribeOptions(defaultOptionsModifier);
+            var options = GetSubscribeOptions(defaultOptionsModifier);
 
             return Task.Run(async () => {
-                using var consumer = GetConfluentKafkaConsumer(options);
+                using var consumer = GetConsumer(options);
                 consumer.Subscribe(topics);
 
                 while (true)
@@ -50,7 +41,33 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        await messageProcessor(consumeResult.Message.Key, consumeResult.Message.Value, consumeResult.Message.Headers);
+                        await messageProcessor(consumeResult.Message.Value, cancellationToken);
+
+                        if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
+                            consumer.Commit();
+                    }
+                }
+            }, cancellationToken);
+        }
+
+        public Task SubscribeAsync<TKey, TMessage>(
+            IEnumerable<string> topics,
+            Func<Message<TKey, TMessage>, CancellationToken, Task> messageProcessor,
+            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
+        {
+            var options = GetSubscribeOptions(defaultOptionsModifier);
+
+            return Task.Run(async () => {
+                using var consumer = GetConsumer(options);
+                consumer.Subscribe(topics);
+
+                while (true)
+                {
+                    var consumeResult = consumer.Consume(cancellationToken);
+                    if (consumeResult != null && !consumeResult.IsPartitionEOF)
+                    {
+                        await messageProcessor(consumeResult.Message, cancellationToken);
 
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
@@ -61,9 +78,9 @@ namespace Siban.Kafka
 
         // -----------
 
-        public IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null)
+        private IConsumer<TKey, TMessage> GetConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null)
         {
-            options ??= GetDefaultSubscribeOptions<TKey, TMessage>();
+            options ??= GetSubscribeOptions<TKey, TMessage>();
             var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)
                 .SetValueDeserializer(options.ValueDeserializer)
@@ -80,11 +97,19 @@ namespace Siban.Kafka
             return consumer;
         }
 
-        public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        private ISubscribeOptions<TKey, TMessage> GetSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        {
+            var options = GetSubscribeOptions<TKey, TMessage>();
+
+            defaultOptionsModifier?.Invoke(options);
+
+            return options;
+        }
+
+        private ISubscribeOptions<TKey, TMessage> GetSubscribeOptions<TKey, TMessage>()
         {
             var messageName = GetMessageName<TMessage>();
-
-            var options = new DefaultSubscribeOptions<TKey, TMessage> {
+            var options = new SubscribeOptions<TKey, TMessage> {
                 KeyDeserializer = GetDefaultDeserializer<TKey>(),
                 ValueDeserializer = GetDefaultDeserializer<TMessage>(),
                 ConsumerConfig = new ConsumerConfig
@@ -95,26 +120,11 @@ namespace Siban.Kafka
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     EnableAutoOffsetStore = true,
                     AllowAutoCreateTopics = true
-                },
-                ErrorHandler = error => 
-                {
-                    if (error.IsError)
-                    {
-                        throw new Exception($"building kafka consumer failed. {error.Reason}");
-                    }
-                },
-                LogHandler = logMessage => 
-                {
-                    // do some thing with log message
                 }
             };
 
-            defaultOptionsModifier?.Invoke(options);
-
             return options;
         }
-
-        // -----------
 
         private IDeserializer<T> GetDefaultDeserializer<T>() 
         {

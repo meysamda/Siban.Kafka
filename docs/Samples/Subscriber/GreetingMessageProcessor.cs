@@ -14,7 +14,7 @@ namespace Siban.Kafka.Samples.Subscriber
             _logger = logger;
         }
 
-        public Task Process(Greeting message, Headers headers, CancellationToken cancellationToken)
+        public Task Process(Greeting message, CancellationToken cancellationToken)
         {
             _logger.LogInformation(message.Body);
             return Task.CompletedTask;

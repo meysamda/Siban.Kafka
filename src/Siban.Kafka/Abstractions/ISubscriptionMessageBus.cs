@@ -10,17 +10,14 @@ namespace Siban.Kafka.Abstractions
     {
         Task SubscribeAsync<TMessage>(
             IEnumerable<string> topics,
-            Func<string, TMessage, Headers, Task> messageProcessor,
+            Func<TMessage, CancellationToken, Task> messageProcessor,
             Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
 
         Task SubscribeAsync<TKey, TMessage>(
             IEnumerable<string> topics,
-            Func<TKey, TMessage, Headers, Task> messageProcessor,
+            Func<Message<TKey, TMessage>, CancellationToken, Task> messageProcessor,
             Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
-
-        IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null);
-        ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null);
     }
 }
