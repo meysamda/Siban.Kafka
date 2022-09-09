@@ -8,7 +8,7 @@ namespace Siban.Kafka.Samples.Subscriber
         {            
             var bootstrapServers = new string[] { "localhost:9092" };
             services.AddSubscriptionMessageBus(bootstrapServers);
-            services.AddSingleton<GreetingMessageProcessor>();
+            services.AddSingleton<GreetingHandler>();
             services.AddHostedService<SubscriberService>();
         }
     }

@@ -26,31 +26,35 @@ namespace Siban.Kafka
 
         // ----------
 
-        public void Publish<TMessage>(
+        public void PublishMessageValue<TValue>(
             string topic,
-            TMessage message,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<string, TValue>> deliveryHandler = null)
         {
             var options = GetPublishOptions(defaultOptionsModifier);
-            var kafkaMessage = new Message<string, TMessage> { Value = message };
+            var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
             if (producer == null)
             {
-                var producerName = GetProducerName<string, TMessage>(options.ProducerName);
+                var producerName = GetProducerName<string, TValue>(options.ProducerName);
                 _producers.Add(producerName, producer);
             }
             
-            producer.Produce(topic, kafkaMessage, deliveryHandler);
+            producer.Produce(topic, message, deliveryHandler);
         }
 
-        public void Publish<TKey, TMessage>(string topic, Message<TKey, TMessage> message, Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null, Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
+        public void PublishMessage<TKey, TValue>(
+            string topic,
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<TKey, TValue>> deliveryHandler = null)
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
             if (producer == null)
             {
-                var producerName = GetProducerName<string, TMessage>(options.ProducerName);
+                var producerName = GetProducerName<string, TValue>(options.ProducerName);
                 _producers.Add(producerName, producer);
             }
             
@@ -59,30 +63,33 @@ namespace Siban.Kafka
 
         // ----------
 
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+        public Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
-            TMessage message,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null)
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null)
         {
             var options = GetPublishOptions(defaultOptionsModifier);
-            var kafkaMessage = new Message<string, TMessage> { Value = message };
+            var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
             if (producer == null)
             {
-                var producerName = GetProducerName<string, TMessage>(options.ProducerName);
+                var producerName = GetProducerName<string, TValue>(options.ProducerName);
                 _producers.Add(producerName, producer);
             }
             
-            return producer.ProduceAsync(topic, kafkaMessage);
+            return producer.ProduceAsync(topic, message);
         }
 
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(string topic, Message<TKey, TMessage> message, Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        public Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
+            string topic,
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
             if (producer == null)
             {
-                var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
+                var producerName = GetProducerName<TKey, TValue>(options.ProducerName);
                 _producers.Add(producerName, producer);
             }
             
@@ -91,17 +98,17 @@ namespace Siban.Kafka
 
         // ----------        
 
-        private IProducer<TKey, TMessage> GetProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
+        private IProducer<TKey, TValue> GetProducer<TKey, TValue>(IPublishOptions<TKey, TValue> options)
         {
-            var producerName = GetProducerName<TKey, TMessage>(options.ProducerName);
+            var producerName = GetProducerName<TKey, TValue>(options.ProducerName);
             _producers.TryGetValue(producerName, out object producerObject);
 
-            IProducer<TKey, TMessage> producer;
+            IProducer<TKey, TValue> producer;
             if (producerObject != null)
-                producer = (IProducer<TKey, TMessage>) _producers[producerName];
+                producer = (IProducer<TKey, TValue>) _producers[producerName];
             else
             {
-                producer = new ProducerBuilder<TKey, TMessage>(options.ProducerConfig)
+                producer = new ProducerBuilder<TKey, TValue>(options.ProducerConfig)
                     .SetKeySerializer(options.KeySerializer)
                     .SetValueSerializer(options.ValueSerializer)
                     .SetErrorHandler((producer, error) => 
@@ -118,27 +125,27 @@ namespace Siban.Kafka
             return producer;
         }
 
-        private IPublishOptions<TKey, TMessage> GetPublishOptions<TKey, TMessage>(Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        private IPublishOptions<TKey, TValue> GetPublishOptions<TKey, TValue>(Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
         {
-            var options = GetDefaultOptions<TKey, TMessage>();
+            var options = GetDefaultOptions<TKey, TValue>();
             defaultOptionsModifier?.Invoke(options);
 
             return options;
         }
         
-        private string GetProducerName<TKey, TMessage>(string producerName)
+        private string GetProducerName<TKey, TValue>(string producerName)
         {
             if (string.IsNullOrEmpty(producerName))
                 producerName = "default";
 
-            return $"{typeof(TKey).Name}-{typeof(TMessage).Name}-{producerName}";
+            return $"{typeof(TKey).Name}-{typeof(TValue).Name}-{producerName}";
         }
 
-        private IPublishOptions<TKey, TMessage> GetDefaultOptions<TKey, TMessage>()
+        private IPublishOptions<TKey, TValue> GetDefaultOptions<TKey, TValue>()
         {
-            return new PublishOptions<TKey, TMessage> {
+            return new PublishOptions<TKey, TValue> {
                 KeySerializer = GetDefaultSerializer<TKey>(),
-                ValueSerializer = GetDefaultSerializer<TMessage>(),
+                ValueSerializer = GetDefaultSerializer<TValue>(),
                 ProducerConfig = new ProducerConfig 
                 {
                     BootstrapServers = _bootstrapServers.ToSepratedString()

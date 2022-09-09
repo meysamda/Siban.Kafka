@@ -24,60 +24,60 @@ namespace Siban.Kafka
 
         // ---------
 
-        public void Publish<TMessage>(
+        public void PublishMessageValue<TValue>(
             string topic,
-            TMessage message,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<string, TValue>> deliveryHandler = null)
         {
-            _publishMessageBus.Publish(topic, message, defaultOptionsModifier, deliveryHandler);
+            _publishMessageBus.PublishMessageValue(topic, value, defaultOptionsModifier, deliveryHandler);
         }
 
-        public void Publish<TKey, TMessage>(
+        public void PublishMessage<TKey, TValue>(
             string topic,
-            Message<TKey, TMessage> message,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<TKey, TValue>> deliveryHandler = null)
         {
-            _publishMessageBus.Publish(topic, message, defaultOptionsModifier, deliveryHandler);
+            _publishMessageBus.PublishMessage(topic, message, defaultOptionsModifier, deliveryHandler);
         }
 
         // ---------
 
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+        public Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
-            TMessage message,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null)
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null)
         {
-            return _publishMessageBus.PublishAsync(topic, message, defaultOptionsModifier);
+            return _publishMessageBus.PublishMessageValueAsync(topic, value, defaultOptionsModifier);
         }
 
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+        public Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
             string topic,
-            Message<TKey, TMessage> message,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
         {
-            return _publishMessageBus.PublishAsync(topic, message, defaultOptionsModifier);
+            return _publishMessageBus.PublishMessageAsync(topic, message, defaultOptionsModifier);
         }
 
         // ==========
 
-        public Task SubscribeAsync<TMessage>(
+        public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<TMessage, CancellationToken, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
+            Func<TValue, Task> handleMethod,
+            Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+            return _subscriptionMessageBus.SubscribeForMessageValueAsync(topics, handleMethod, defaultOptionsModifier, cancellationToken);
         }
 
-        public Task SubscribeAsync<TKey, TMessage>(
+        public Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<Message<TKey, TMessage>, CancellationToken, Task> messageProcessor,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
+            Func<Message<TKey, TValue>, Task> messageProcessor,
+            Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+            return _subscriptionMessageBus.SubscribeForMessageAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
     }
 }
