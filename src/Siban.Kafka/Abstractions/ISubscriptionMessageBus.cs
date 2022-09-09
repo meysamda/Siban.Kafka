@@ -8,19 +8,16 @@ namespace Siban.Kafka.Abstractions
 {    
     public interface ISubscriptionMessageBus
     {
-        Task SubscribeAsync<TMessage>(
+        Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<string, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
+            Func<TValue, Task> handleMethod,
+            Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
 
-        Task SubscribeAsync<TKey, TMessage>(
+        Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<TKey, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
+            Func<Message<TKey, TValue>, Task> handleMethod,
+            Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
-
-        IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null);
-        ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null);
     }
 }

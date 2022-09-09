@@ -6,39 +6,28 @@ namespace Siban.Kafka.Abstractions
 {
     public interface IPublishMessageBus
     {        
-        void Publish<TMessage>(
+        void PublishMessageValue<TValue>(
             string topic,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null);
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<string, TValue>> deliveryHandler = null);
 
-        void Publish<TKey, TMessage>(
+        void PublishMessage<TKey, TValue>(
             string topic,
-            TKey key,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null);
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<TKey, TValue>> deliveryHandler = null);
         
         // -----
 
-        Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+        Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null);
+            TValue message,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null);
 
-        Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+        Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
             string topic,
-            TKey key,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null);
-
-        // -----
-
-        public IProducer<TKey, TMessage> GetConfluentKafkaProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options);
-        public IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>(Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null);
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null);
     }
 }

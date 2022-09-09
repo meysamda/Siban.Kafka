@@ -4,7 +4,7 @@ using Siban.Kafka.Abstractions;
 
 namespace Siban.Kafka
 {
-    public class DefaultPublishOptions<TKey, TMessage> : IPublishOptions<TKey, TMessage>
+    public class PublishOptions<TKey, TMessage> : IPublishOptions<TKey, TMessage>
     {
         public ISerializer<TMessage> ValueSerializer { get; set; }
         public ISerializer<TKey> KeySerializer { get; set; }
