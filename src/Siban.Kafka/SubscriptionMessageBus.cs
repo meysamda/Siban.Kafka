@@ -81,20 +81,17 @@ namespace Siban.Kafka
         private IConsumer<TKey, TValue> GetConsumer<TKey, TValue>(ISubscribeOptions<TKey, TValue> options = null)
         {
             options ??= GetSubscribeOptions<TKey, TValue>();
-            var consumer = new ConsumerBuilder<TKey, TValue>(options.ConsumerConfig)
+            var builder = new ConsumerBuilder<TKey, TValue>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)
-                .SetValueDeserializer(options.ValueDeserializer)
-                .SetErrorHandler((consumer, error) => 
-                {
-                    options.ErrorHandler(error);
-                })
-                .SetLogHandler((consumer, logMessage) => 
-                {
-                    options.LogHandler(logMessage);
-                })
-                .Build();
+                .SetValueDeserializer(options.ValueDeserializer);
+            
+            if (options.ErrorHandler != null)
+                builder.SetErrorHandler((consumer, error) => { options.ErrorHandler(error); });
 
-            return consumer;
+            if (options.LogHandler != null)
+                builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
+
+            return builder.Build();
         }
 
         private ISubscribeOptions<TKey, TValue> GetSubscribeOptions<TKey, TValue>(Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null)
