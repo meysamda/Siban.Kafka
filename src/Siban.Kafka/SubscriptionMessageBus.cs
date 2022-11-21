@@ -24,25 +24,16 @@ namespace Siban.Kafka
             _defaultDeserializer = defaultDeserializer;
         }
 
-        public Task SubscribeAsync<TMessage>(
+        public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<string, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
+            Func<TValue, Task> handleMethod,
+            Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
-            return SubscribeAsync<string, TMessage>(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
-        public Task SubscribeAsync<TKey, TMessage>(
-            IEnumerable<string> topics,
-            Func<TKey, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            CancellationToken cancellationToken = default)
-        {
-            var options = GetDefaultSubscribeOptions(defaultOptionsModifier);
+            var options = GetSubscribeOptions(defaultOptionsModifier);
 
             return Task.Run(async () => {
-                using var consumer = GetConfluentKafkaConsumer(options);
+                using var consumer = GetConsumer(options);
                 consumer.Subscribe(topics);
 
                 while (true)
@@ -50,7 +41,33 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        await messageProcessor(consumeResult.Message.Key, consumeResult.Message.Value, consumeResult.Message.Headers);
+                        await handleMethod(consumeResult.Message.Value);
+
+                        if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
+                            consumer.Commit();
+                    }
+                }
+            }, cancellationToken);
+        }
+
+        public Task SubscribeForMessageAsync<TKey, TValue>(
+            IEnumerable<string> topics,
+            Func<Message<TKey, TValue>, Task> handleMethod,
+            Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
+        {
+            var options = GetSubscribeOptions(defaultOptionsModifier);
+
+            return Task.Run(async () => {
+                using var consumer = GetConsumer(options);
+                consumer.Subscribe(topics);
+
+                while (true)
+                {
+                    var consumeResult = consumer.Consume(cancellationToken);
+                    if (consumeResult != null && !consumeResult.IsPartitionEOF)
+                    {
+                        await handleMethod(consumeResult.Message);
 
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                             consumer.Commit();
@@ -61,10 +78,10 @@ namespace Siban.Kafka
 
         // -----------
 
-        public IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options = null)
+        private IConsumer<TKey, TValue> GetConsumer<TKey, TValue>(ISubscribeOptions<TKey, TValue> options = null)
         {
-            options ??= GetDefaultSubscribeOptions<TKey, TMessage>();
-            var consumer = new ConsumerBuilder<TKey, TMessage>(options.ConsumerConfig)
+            options ??= GetSubscribeOptions<TKey, TValue>();
+            var consumer = new ConsumerBuilder<TKey, TValue>(options.ConsumerConfig)
                 .SetKeyDeserializer(options.KeyDeserializer)
                 .SetValueDeserializer(options.ValueDeserializer)
                 .SetErrorHandler((consumer, error) => 
@@ -80,38 +97,33 @@ namespace Siban.Kafka
             return consumer;
         }
 
-        public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
+        private ISubscribeOptions<TKey, TValue> GetSubscribeOptions<TKey, TValue>(Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null)
         {
-            var messageName = GetMessageName<TMessage>();
-
-            var options = new DefaultSubscribeOptions<TKey, TMessage> {
-                KeyDeserializer = GetDefaultDeserializer<TKey>(),
-                ValueDeserializer = GetDefaultDeserializer<TMessage>(),
-                ConsumerConfig = new ConsumerConfig
-                {
-                    BootstrapServers = _bootstrapServers.ToSepratedString(),
-                    GroupId = messageName,
-                    EnableAutoCommit = true,
-                    AutoOffsetReset = AutoOffsetReset.Earliest,
-                    EnableAutoOffsetStore = true,
-                    AllowAutoCreateTopics = true
-                },
-                ErrorHandler = error => 
-                {
-                    // default error handler
-                },
-                LogHandler = logMessage => 
-                {
-                    // default log handler
-                }
-            };
+            var options = GetSubscribeOptions<TKey, TValue>();
 
             defaultOptionsModifier?.Invoke(options);
 
             return options;
         }
 
-        // -----------
+        private ISubscribeOptions<TKey, TValue> GetSubscribeOptions<TKey, TValue>()
+        {
+            var options = new SubscribeOptions<TKey, TValue> {
+                KeyDeserializer = GetDefaultDeserializer<TKey>(),
+                ValueDeserializer = GetDefaultDeserializer<TValue>(),
+                ConsumerConfig = new ConsumerConfig
+                {
+                    BootstrapServers = _bootstrapServers.ToSepratedString(),
+                    GroupId = GetTypeName<TValue>(),
+                    EnableAutoCommit = true,
+                    AutoOffsetReset = AutoOffsetReset.Earliest,
+                    EnableAutoOffsetStore = true,
+                    AllowAutoCreateTopics = true
+                }
+            };
+
+            return options;
+        }
 
         private IDeserializer<T> GetDefaultDeserializer<T>() 
         {
@@ -123,6 +135,6 @@ namespace Siban.Kafka
             };
         }
 
-        private string GetMessageName<TMessage>() => typeof(TMessage).Name;
+        private string GetTypeName<T>() => typeof(T).Name;
     }
 }

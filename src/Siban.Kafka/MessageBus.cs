@@ -24,90 +24,60 @@ namespace Siban.Kafka
 
         // ---------
 
-        public void Publish<TMessage>(
+        public void PublishMessageValue<TValue>(
             string topic,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<string, TMessage>> deliveryHandler = null)
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<string, TValue>> deliveryHandler = null)
         {
-            _publishMessageBus.Publish(topic, message, headers, defaultOptionsModifier, deliveryHandler);
+            _publishMessageBus.PublishMessageValue(topic, value, defaultOptionsModifier, deliveryHandler);
         }
 
-        public void Publish<TKey, TMessage>(
+        public void PublishMessage<TKey, TValue>(
             string topic,
-            TKey key,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null,
-            Action<DeliveryReport<TKey, TMessage>> deliveryHandler = null)
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            Action<DeliveryReport<TKey, TValue>> deliveryHandler = null)
         {
-            _publishMessageBus.Publish(topic, key, message, headers, defaultOptionsModifier, deliveryHandler);
+            _publishMessageBus.PublishMessage(topic, message, defaultOptionsModifier, deliveryHandler);
         }
 
         // ---------
 
-        public Task<DeliveryResult<string, TMessage>> PublishAsync<TMessage>(
+        public Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<string, TMessage>> defaultOptionsModifier = null)
+            TValue value,
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null)
         {
-            return _publishMessageBus.PublishAsync(topic, message, headers, defaultOptionsModifier);
+            return _publishMessageBus.PublishMessageValueAsync(topic, value, defaultOptionsModifier);
         }
 
-        public Task<DeliveryResult<TKey, TMessage>> PublishAsync<TKey, TMessage>(
+        public Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
             string topic,
-            TKey key,
-            TMessage message,
-            Headers headers = null,
-            Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
+            Message<TKey, TValue> message,
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
         {
-            return _publishMessageBus.PublishAsync(topic, key, message, headers, defaultOptionsModifier);
-        }
-
-        // ---------
-
-        public IProducer<TKey, TMessage> GetConfluentKafkaProducer<TKey, TMessage>(IPublishOptions<TKey, TMessage> options)
-        {
-            return _publishMessageBus.GetConfluentKafkaProducer(options);
-        }
-
-        public IPublishOptions<TKey, TMessage> GetDefaultPublishOptions<TKey, TMessage>(Action<IPublishOptions<TKey, TMessage>> defaultOptionsModifier = null)
-        {
-            return _publishMessageBus.GetDefaultPublishOptions(defaultOptionsModifier);
+            return _publishMessageBus.PublishMessageAsync(topic, message, defaultOptionsModifier);
         }
 
         // ==========
 
-        public Task SubscribeAsync<TMessage>(
+        public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<string, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<string, TMessage>> defaultOptionsModifier = null,
+            Func<TValue, Task> handleMethod,
+            Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
+            return _subscriptionMessageBus.SubscribeForMessageValueAsync(topics, handleMethod, defaultOptionsModifier, cancellationToken);
         }
 
-        public Task SubscribeAsync<TKey, TMessage>(
+        public Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<TKey, TMessage, Headers, Task> messageProcessor,
-            Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null,
+            Func<Message<TKey, TValue>, Task> messageProcessor,
+            Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
-            return _subscriptionMessageBus.SubscribeAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
-        }
-
-        // ---------
-
-        public IConsumer<TKey, TMessage> GetConfluentKafkaConsumer<TKey, TMessage>(ISubscribeOptions<TKey, TMessage> options)
-        {
-            return _subscriptionMessageBus.GetConfluentKafkaConsumer(options);
-        }
-
-        public ISubscribeOptions<TKey, TMessage> GetDefaultSubscribeOptions<TKey, TMessage>(Action<ISubscribeOptions<TKey, TMessage>> defaultOptionsModifier = null)
-        {
-            return _subscriptionMessageBus.GetDefaultSubscribeOptions(defaultOptionsModifier);
+            return _subscriptionMessageBus.SubscribeForMessageAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
     }
 }
