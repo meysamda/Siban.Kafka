@@ -19,6 +19,22 @@ namespace Siban.Kafka.Samples.Subscriber
         
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            await _messageBus.SubscribeForMessageValueAsync<OnlineCustomerChangeIntegrationEventMessage>(
+                    new [] { "online-customer" },
+                    (value) => 
+                    {
+                        Console.WriteLine(value.Content);
+                        return Task.CompletedTask;
+                    },
+                    options => {
+                        options.ConsumerConfig.GroupId = "cmanager";
+                        options.ConsumerConfig.AllowAutoCreateTopics = true;
+                        options.ConsumerConfig.EnableAutoCommit = false;
+                        options.ConsumerConfig.AutoOffsetReset = Confluent.Kafka.AutoOffsetReset.Earliest;
+                    },
+                    cancellationToken
+                );
+
             try
             {
                 var t1 = _messageBus.SubscribeForMessageValueAsync<string>(
@@ -65,5 +81,12 @@ namespace Siban.Kafka.Samples.Subscriber
                 throw;
             }
         }
+    }
+
+    public class OnlineCustomerChangeIntegrationEventMessage
+    {
+        public Guid EventId { get; set; }
+        public string Content { get; set; }
+        public string EventName { get; set; }
     }
 }

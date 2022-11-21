@@ -18,7 +18,8 @@ namespace Siban.Kafka.Samples.Publisher
         {
             services.AddControllers();
 
-            var bootstrapServers = new string[] { "localhost:9092" };
+            // var bootstrapServers = new string[] { "localhost:9092" };
+            var bootstrapServers = new string[] { "kafka.nsedna.com:32344" };
             services.AddPublishMessageBus(bootstrapServers);
         }
 

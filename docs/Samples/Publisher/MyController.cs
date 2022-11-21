@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Confluent.Kafka;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -24,18 +25,15 @@ namespace Siban.Kafka.Samples.Publisher
         }
 
         [HttpGet("1")]
-        public bool Get()
+        public async Task<bool> Get()
         {
-            _messageBus.PublishMessageValue("greeting-1", "hello world-1", options => {
-                    options.ProducerConfig.ClientId = Dns.GetHostName();
-                    options.ProducerConfig.Acks = Acks.Leader;
-                    options.ProducerConfig.MessageTimeoutMs = 1000;
-                },
-                dr => {
-                    if (dr.Error.IsError) {
-                        System.Console.WriteLine(dr.Error.Reason);
-                    }
-                });
+            await _messageBus.PublishMessageValueAsync("greeting-1", "hello world-1");
+
+            // await _messageBus.PublishMessageValueAsync("greeting-1", "hello world-1", options => {
+            //         options.ProducerConfig.ClientId = Dns.GetHostName();
+            //         options.ProducerConfig.Acks = Acks.Leader;
+            //         options.ProducerConfig.MessageTimeoutMs = 1000;
+            //     });
 
             return true;
         }

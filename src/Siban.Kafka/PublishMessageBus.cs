@@ -108,18 +108,17 @@ namespace Siban.Kafka
                 producer = (IProducer<TKey, TValue>) _producers[producerName];
             else
             {
-                producer = new ProducerBuilder<TKey, TValue>(options.ProducerConfig)
+                var builder = new ProducerBuilder<TKey, TValue>(options.ProducerConfig)
                     .SetKeySerializer(options.KeySerializer)
-                    .SetValueSerializer(options.ValueSerializer)
-                    .SetErrorHandler((producer, error) => 
-                    {
-                        options.ErrorHandler(error);
-                    })
-                    .SetLogHandler((producer, logMessage) => 
-                    {
-                        options.LogHandler(logMessage);
-                    })
-                    .Build();
+                    .SetValueSerializer(options.ValueSerializer);
+            
+                if (options.ErrorHandler != null)
+                    builder.SetErrorHandler((consumer, error) => { options.ErrorHandler(error); });
+
+                if (options.LogHandler != null)
+                    builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
+
+                producer = builder.Build();
             }
 
             return producer;
