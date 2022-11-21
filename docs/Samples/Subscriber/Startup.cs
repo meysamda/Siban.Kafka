@@ -6,8 +6,8 @@ namespace Siban.Kafka.Samples.Subscriber
     {
         public static void ConfigureServices(IServiceCollection services)
         {            
-            var bootstrapServers = new string[] { "kafka.nsedna.com:32344" };
-            services.AddMessageBus(bootstrapServers, bootstrapServers);
+            var bootstrapServers = new string[] { "localhost:9092" };
+            services.AddSubscriptionMessageBus(bootstrapServers);
             services.AddSingleton<GreetingHandler>();
             services.AddHostedService<SubscriberService>();
         }

@@ -8,10 +8,10 @@ namespace Siban.Kafka.Samples.Subscriber
 {
     public class SubscriberService : BackgroundService
     {
-        private readonly IMessageBus _messageBus;
+        private readonly ISubscriptionMessageBus _messageBus;
         private readonly GreetingHandler _handler;
 
-        public SubscriberService(IMessageBus messageBus, GreetingHandler handler)
+        public SubscriberService(ISubscriptionMessageBus messageBus, GreetingHandler handler)
         {
             _messageBus = messageBus;
             _handler = handler;
