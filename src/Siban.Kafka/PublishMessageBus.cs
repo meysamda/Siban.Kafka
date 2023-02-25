@@ -35,11 +35,6 @@ namespace Siban.Kafka
             var options = GetPublishOptions(defaultOptionsModifier);
             var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
-            if (producer == null)
-            {
-                var producerName = GetProducerName<string, TValue>(options.ProducerName);
-                _producers.Add(producerName, producer);
-            }
             
             producer.Produce(topic, message, deliveryHandler);
         }
@@ -52,11 +47,6 @@ namespace Siban.Kafka
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
-            if (producer == null)
-            {
-                var producerName = GetProducerName<string, TValue>(options.ProducerName);
-                _producers.Add(producerName, producer);
-            }
             
             producer.Produce(topic, message, deliveryHandler);
         }
@@ -71,11 +61,6 @@ namespace Siban.Kafka
             var options = GetPublishOptions(defaultOptionsModifier);
             var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
-            if (producer == null)
-            {
-                var producerName = GetProducerName<string, TValue>(options.ProducerName);
-                _producers.Add(producerName, producer);
-            }
             
             return producer.ProduceAsync(topic, message);
         }
@@ -87,11 +72,6 @@ namespace Siban.Kafka
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
-            if (producer == null)
-            {
-                var producerName = GetProducerName<TKey, TValue>(options.ProducerName);
-                _producers.Add(producerName, producer);
-            }
             
             return producer.ProduceAsync(topic, message);
         }
@@ -105,7 +85,9 @@ namespace Siban.Kafka
 
             IProducer<TKey, TValue> producer;
             if (producerObject != null)
+            {
                 producer = (IProducer<TKey, TValue>) _producers[producerName];
+            }
             else
             {
                 var builder = new ProducerBuilder<TKey, TValue>(options.ProducerConfig)
@@ -119,6 +101,7 @@ namespace Siban.Kafka
                     builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
 
                 producer = builder.Build();
+                _producers.Add(producerName, producer);
             }
 
             return producer;
