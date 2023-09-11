@@ -79,5 +79,10 @@ namespace Siban.Kafka
         {
             return _subscriptionMessageBus.SubscribeForMessageAsync(topics, messageProcessor, defaultOptionsModifier, cancellationToken);
         }
+
+        public void Unsubscribe<TKey, TValue>(string consumerName)
+        {
+            _subscriptionMessageBus.Unsubscribe<TKey, TValue>(consumerName);
+        }
     }
 }
