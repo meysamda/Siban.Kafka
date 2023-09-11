@@ -12,6 +12,7 @@ namespace Siban.Kafka
     {
         private readonly IEnumerable<string> _bootstrapServers;
         private readonly DefaultSerializer _defaultDeserializer;
+        private readonly Dictionary<string, object> _consumers;
 
         public SubscriptionMessageBus(
             IEnumerable<string> bootstrapServers,
@@ -22,6 +23,7 @@ namespace Siban.Kafka
             _bootstrapServers = bootstrapServers;
 
             _defaultDeserializer = defaultDeserializer;
+            _consumers = new Dictionary<string, object>();
         }
 
         public Task SubscribeForMessageValueAsync<TValue>(
@@ -32,11 +34,12 @@ namespace Siban.Kafka
         {
             var options = GetSubscribeOptions(defaultOptionsModifier);
 
-            return Task.Run(async () => {
+            return Task.Run(async () =>
+            {
                 using var consumer = GetConsumer(options);
                 consumer.Subscribe(topics);
 
-                while (true)
+                while (consumer.Subscription.Any())
                 {
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
@@ -44,7 +47,9 @@ namespace Siban.Kafka
                         await handleMethod(consumeResult.Message.Value);
 
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
+                        {
                             consumer.Commit();
+                        }
                     }
                 }
             }, cancellationToken);
@@ -58,11 +63,12 @@ namespace Siban.Kafka
         {
             var options = GetSubscribeOptions(defaultOptionsModifier);
 
-            return Task.Run(async () => {
+            return Task.Run(async () =>
+            {
                 using var consumer = GetConsumer(options);
                 consumer.Subscribe(topics);
 
-                while (true)
+                while (consumer.Subscription.Any())
                 {
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
@@ -70,28 +76,57 @@ namespace Siban.Kafka
                         await handleMethod(consumeResult.Message);
 
                         if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
+                        {
                             consumer.Commit();
+                        }
                     }
                 }
             }, cancellationToken);
         }
 
+        public void Unsubscribe<TKey, TValue>(string consumerName)
+        {
+            var name = GetConsumerName<TKey, TValue>(consumerName);
+            _consumers.TryGetValue(name, out var consumerObject);
+
+            if (consumerObject != null)
+            {
+                var consumer = (IConsumer<TKey, TValue>)_consumers[consumerName];
+                consumer.Unsubscribe();
+            }
+        }
+
         // -----------
+
 
         private IConsumer<TKey, TValue> GetConsumer<TKey, TValue>(ISubscribeOptions<TKey, TValue> options = null)
         {
-            options ??= GetSubscribeOptions<TKey, TValue>();
-            var builder = new ConsumerBuilder<TKey, TValue>(options.ConsumerConfig)
-                .SetKeyDeserializer(options.KeyDeserializer)
-                .SetValueDeserializer(options.ValueDeserializer);
-            
-            if (options.ErrorHandler != null)
-                builder.SetErrorHandler((consumer, error) => { options.ErrorHandler(error); });
+            var consumerName = GetConsumerName<TKey, TValue>(options.ConsumerName);
+            _consumers.TryGetValue(consumerName, out object consumerObject);
 
-            if (options.LogHandler != null)
-                builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
+            IConsumer<TKey, TValue> consumer;
+            if (consumerObject != null)
+            {
+                consumer = (IConsumer<TKey, TValue>)_consumers[consumerName];
+            }
+            else
+            {
+                options ??= GetSubscribeOptions<TKey, TValue>();
+                var builder = new ConsumerBuilder<TKey, TValue>(options.ConsumerConfig)
+                    .SetKeyDeserializer(options.KeyDeserializer)
+                    .SetValueDeserializer(options.ValueDeserializer);
 
-            return builder.Build();
+                if (options.ErrorHandler != null)
+                    builder.SetErrorHandler((consumer, error) => { options.ErrorHandler(error); });
+
+                if (options.LogHandler != null)
+                    builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
+
+                consumer = builder.Build();
+                _consumers.Add(consumerName, consumer);
+            }
+
+            return consumer;
         }
 
         private ISubscribeOptions<TKey, TValue> GetSubscribeOptions<TKey, TValue>(Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null)
@@ -103,9 +138,15 @@ namespace Siban.Kafka
             return options;
         }
 
+        private string GetConsumerName<TKey, TValue>(string consumerName = "default")
+        {
+            return $"{typeof(TKey).Name}-{typeof(TValue).Name}-{consumerName}";
+        }
+
         private ISubscribeOptions<TKey, TValue> GetSubscribeOptions<TKey, TValue>()
         {
-            var options = new SubscribeOptions<TKey, TValue> {
+            var options = new SubscribeOptions<TKey, TValue>
+            {
                 KeyDeserializer = GetDefaultDeserializer<TKey>(),
                 ValueDeserializer = GetDefaultDeserializer<TValue>(),
                 ConsumerConfig = new ConsumerConfig
@@ -122,7 +163,7 @@ namespace Siban.Kafka
             return options;
         }
 
-        private IDeserializer<T> GetDefaultDeserializer<T>() 
+        private IDeserializer<T> GetDefaultDeserializer<T>()
         {
             return _defaultDeserializer switch
             {
