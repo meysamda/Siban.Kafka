@@ -20,6 +20,6 @@ namespace Siban.Kafka.Abstractions
             Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
 
-        void Unsubscribe<TKey, TValue>(string consumerName);
+        void Unsubscribe<TKey, TValue>(string consumerName = "default");
     }
 }
