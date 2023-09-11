@@ -84,7 +84,7 @@ namespace Siban.Kafka
             }, cancellationToken);
         }
 
-        public void Unsubscribe<TKey, TValue>(string consumerName)
+        public void Unsubscribe<TKey, TValue>(string consumerName = "default")
         {
             var name = GetConsumerName<TKey, TValue>(consumerName);
             _consumers.TryGetValue(name, out var consumerObject);
