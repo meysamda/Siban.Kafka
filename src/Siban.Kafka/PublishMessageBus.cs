@@ -11,6 +11,7 @@ namespace Siban.Kafka
         private readonly IEnumerable<string> _bootstrapServers;
         private readonly DefaultSerializer _defaultSerializer;
         private readonly Dictionary<string, object> _producers;
+        private static readonly object LockObject = new object();
 
         public PublishMessageBus(
             IEnumerable<string> bootstrapServers,
@@ -35,7 +36,7 @@ namespace Siban.Kafka
             var options = GetPublishOptions(defaultOptionsModifier);
             var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
-            
+
             producer.Produce(topic, message, deliveryHandler);
         }
 
@@ -47,7 +48,7 @@ namespace Siban.Kafka
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
-            
+
             producer.Produce(topic, message, deliveryHandler);
         }
 
@@ -61,7 +62,7 @@ namespace Siban.Kafka
             var options = GetPublishOptions(defaultOptionsModifier);
             var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
-            
+
             return producer.ProduceAsync(topic, message);
         }
 
@@ -72,7 +73,7 @@ namespace Siban.Kafka
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
-            
+
             return producer.ProduceAsync(topic, message);
         }
 
@@ -86,14 +87,14 @@ namespace Siban.Kafka
             IProducer<TKey, TValue> producer;
             if (producerObject != null)
             {
-                producer = (IProducer<TKey, TValue>) _producers[producerName];
+                producer = (IProducer<TKey, TValue>)_producers[producerName];
             }
             else
             {
                 var builder = new ProducerBuilder<TKey, TValue>(options.ProducerConfig)
                     .SetKeySerializer(options.KeySerializer)
                     .SetValueSerializer(options.ValueSerializer);
-            
+
                 if (options.ErrorHandler != null)
                     builder.SetErrorHandler((consumer, error) => { options.ErrorHandler(error); });
 
@@ -101,10 +102,21 @@ namespace Siban.Kafka
                     builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
 
                 producer = builder.Build();
-                _producers.Add(producerName, producer);
+                AddProducer(producerName, producer);
             }
 
             return producer;
+        }
+
+        private void AddProducer<TKey, TValue>(string producerName, IProducer<TKey, TValue> producer)
+        {
+            lock (LockObject)
+            {
+                if (!_producers.ContainsKey(producerName))
+                {
+                    _producers.Add(producerName, producer);
+                }
+            }
         }
 
         private IPublishOptions<TKey, TValue> GetPublishOptions<TKey, TValue>(Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
@@ -114,7 +126,7 @@ namespace Siban.Kafka
 
             return options;
         }
-        
+
         private string GetProducerName<TKey, TValue>(string producerName)
         {
             if (string.IsNullOrEmpty(producerName))
@@ -125,17 +137,18 @@ namespace Siban.Kafka
 
         private IPublishOptions<TKey, TValue> GetDefaultOptions<TKey, TValue>()
         {
-            return new PublishOptions<TKey, TValue> {
+            return new PublishOptions<TKey, TValue>
+            {
                 KeySerializer = GetDefaultSerializer<TKey>(),
                 ValueSerializer = GetDefaultSerializer<TValue>(),
-                ProducerConfig = new ProducerConfig 
+                ProducerConfig = new ProducerConfig
                 {
                     BootstrapServers = _bootstrapServers.ToSepratedString()
                 }
             };
         }
 
-        private ISerializer<T> GetDefaultSerializer<T>() 
+        private ISerializer<T> GetDefaultSerializer<T>()
         {
             return _defaultSerializer switch
             {

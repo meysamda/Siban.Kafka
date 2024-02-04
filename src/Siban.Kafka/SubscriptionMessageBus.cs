@@ -13,6 +13,7 @@ namespace Siban.Kafka
         private readonly IEnumerable<string> _bootstrapServers;
         private readonly DefaultSerializer _defaultDeserializer;
         private readonly Dictionary<string, object> _consumers;
+        private static readonly object LockObject = new object();
 
         public SubscriptionMessageBus(
             IEnumerable<string> bootstrapServers,
@@ -123,10 +124,21 @@ namespace Siban.Kafka
                     builder.SetLogHandler((consumer, logMessage) => { options.LogHandler(logMessage); });
 
                 consumer = builder.Build();
-                _consumers.Add(consumerName, consumer);
+                AddConsumer(consumerName, consumer);
             }
 
             return consumer;
+        }
+
+        private void AddConsumer<TKey, TValue>(string consumerName, IConsumer<TKey, TValue> consumer)
+        {
+            lock (LockObject)
+            {
+                if (!_consumers.ContainsKey(consumerName))
+                {
+                    _consumers.Add(consumerName, consumer);
+                }
+            }
         }
 
         private ISubscribeOptions<TKey, TValue> GetSubscribeOptions<TKey, TValue>(Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null)
