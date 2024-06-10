@@ -12,7 +12,7 @@ namespace Siban.Kafka
     {
         private readonly IEnumerable<string> _bootstrapServers;
         public IEnumerable<string> BootstrapServers => _bootstrapServers;
-        
+
         private readonly IPublishMessageBus _publishMessageBus;
         private readonly ISubscriptionMessageBus _subscriptionMessageBus;
 

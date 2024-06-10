@@ -6,12 +6,12 @@
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
     <PackageId>Siban.Kafka</PackageId>
-    <Version>2.0.10</Version>
+    <Version>2.0.11</Version>
     <Description>Siban.Kafka enables you to create a message bus and do publish / subcribe operations simply or in advanced way.</Description>
     <Authors>meysam abasi</Authors>
     <Company>Dara Brokerage</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>modified to make bootstrap servers public</PackageReleaseNotes>
+    <PackageReleaseNotes>bug fix</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/meysamda/Siban.Kafka</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
