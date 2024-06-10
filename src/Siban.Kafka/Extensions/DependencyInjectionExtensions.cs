@@ -34,13 +34,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddMessageBus(
             this IServiceCollection services,
-            IEnumerable<string> publishBootstrapServers,
-            IEnumerable<string> subscriptionBootstrapServers,
+            IEnumerable<string> bootstrapServers,
             DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer,
             DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer)
         { 
             services.AddSingleton<IMessageBus, MessageBus>(sp => {
-                var messageBus = new MessageBus(publishBootstrapServers, subscriptionBootstrapServers, defaultSerializer, defaultDeserializer);
+                var messageBus = new MessageBus(bootstrapServers, defaultSerializer, defaultDeserializer);
                 return messageBus;
             });
 

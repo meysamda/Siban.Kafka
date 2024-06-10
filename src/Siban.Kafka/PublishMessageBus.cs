@@ -9,16 +9,18 @@ namespace Siban.Kafka
     public class PublishMessageBus : IPublishMessageBus
     {
         private readonly IEnumerable<string> _bootstrapServers;
+        public IEnumerable<string> BootstrapServers => _bootstrapServers;
+        
         private readonly DefaultSerializer _defaultSerializer;
         private readonly Dictionary<string, object> _producers;
         private static readonly object LockObject = new object();
+
 
         public PublishMessageBus(
             IEnumerable<string> bootstrapServers,
             DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer)
         {
-            _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
-            if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
+            if (bootstrapServers.Count() == 0) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
             _bootstrapServers = bootstrapServers;
 
             _defaultSerializer = defaultSerializer;
@@ -143,7 +145,7 @@ namespace Siban.Kafka
                 ValueSerializer = GetDefaultSerializer<TValue>(),
                 ProducerConfig = new ProducerConfig
                 {
-                    BootstrapServers = _bootstrapServers.ToSepratedString()
+                    BootstrapServers = BootstrapServers.ToSepratedString()
                 }
             };
         }

@@ -4,22 +4,29 @@ using Siban.Kafka.Abstractions;
 using Confluent.Kafka;
 using System.Threading;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Siban.Kafka
 {
     public class MessageBus : IMessageBus
     {
+        private readonly IEnumerable<string> _bootstrapServers;
+        public IEnumerable<string> BootstrapServers => _bootstrapServers;
+        
         private readonly IPublishMessageBus _publishMessageBus;
         private readonly ISubscriptionMessageBus _subscriptionMessageBus;
 
+
         public MessageBus(
-            IEnumerable<string> publishBootstrapServers,
-            IEnumerable<string> subscriptionBootstrapServers,
+            IEnumerable<string> bootstrapServers,
             DefaultSerializer defaultSerializer = DefaultSerializer.MicrosoftJsonSerializer,
             DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer)
         {
-            _publishMessageBus = new PublishMessageBus(publishBootstrapServers, defaultSerializer);
-            _subscriptionMessageBus = new SubscriptionMessageBus(subscriptionBootstrapServers, defaultDeserializer);
+            if (bootstrapServers.Count() == 0) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
+            _bootstrapServers = bootstrapServers;
+
+            _publishMessageBus = new PublishMessageBus(bootstrapServers, defaultSerializer);
+            _subscriptionMessageBus = new SubscriptionMessageBus(bootstrapServers, defaultDeserializer);
         }
 
         // ---------

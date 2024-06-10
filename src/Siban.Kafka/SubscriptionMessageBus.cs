@@ -11,6 +11,8 @@ namespace Siban.Kafka
     public class SubscriptionMessageBus : ISubscriptionMessageBus
     {
         private readonly IEnumerable<string> _bootstrapServers;
+        public IEnumerable<string> BootstrapServers => _bootstrapServers;
+        
         private readonly DefaultSerializer _defaultDeserializer;
         private readonly Dictionary<string, object> _consumers;
         private static readonly object LockObject = new object();
@@ -19,8 +21,7 @@ namespace Siban.Kafka
             IEnumerable<string> bootstrapServers,
             DefaultSerializer defaultDeserializer = DefaultSerializer.MicrosoftJsonSerializer)
         {
-            _bootstrapServers = bootstrapServers ?? throw new ArgumentNullException(nameof(bootstrapServers));
-            if (!bootstrapServers.Any()) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
+            if (bootstrapServers.Count() == 0) throw new ArgumentException("bootstrapServers list is empty", nameof(bootstrapServers));
             _bootstrapServers = bootstrapServers;
 
             _defaultDeserializer = defaultDeserializer;
@@ -163,7 +164,7 @@ namespace Siban.Kafka
                 ValueDeserializer = GetDefaultDeserializer<TValue>(),
                 ConsumerConfig = new ConsumerConfig
                 {
-                    BootstrapServers = _bootstrapServers.ToSepratedString(),
+                    BootstrapServers = BootstrapServers.ToSepratedString(),
                     GroupId = GetTypeName<TValue>(),
                     EnableAutoCommit = true,
                     AutoOffsetReset = AutoOffsetReset.Earliest,
