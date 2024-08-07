@@ -71,7 +71,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<TValue, Task> handleMethod,
+            Func<TValue, Task<bool>> handleMethod,
             Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -80,7 +80,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<Message<TKey, TValue>, Task> messageProcessor,
+            Func<Message<TKey, TValue>, Task<bool>> messageProcessor,
             Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {

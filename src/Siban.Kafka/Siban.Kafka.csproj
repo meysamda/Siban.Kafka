@@ -11,7 +11,7 @@
     <Authors>meysam abasi</Authors>
     <Company>Dara Brokerage</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageReleaseNotes>modified so that the subscription Func returns Task<bool></PackageReleaseNotes>
+    <PackageReleaseNotes>modified so that the subscription Func returns bool</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/meysamda/Siban.Kafka</RepositoryUrl>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
   </PropertyGroup>
