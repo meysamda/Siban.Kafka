@@ -10,13 +10,13 @@ namespace Siban.Kafka.Abstractions
     {
         Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<TValue, Task> handleMethod,
+            Func<TValue, Task<bool>> handleMethod,
             Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
 
         Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<Message<TKey, TValue>, Task> handleMethod,
+            Func<Message<TKey, TValue>, Task<bool>> handleMethod,
             Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default);
 
