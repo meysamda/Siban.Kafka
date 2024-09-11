@@ -93,7 +93,7 @@ namespace Siban.Kafka
 
             if (consumerObject != null)
             {
-                var consumer = (IConsumer<TKey, TValue>)_consumers[consumerName];
+                var consumer = (IConsumer<TKey, TValue>)consumerObject;
                 consumer.Unsubscribe();
             }
         }
@@ -109,7 +109,7 @@ namespace Siban.Kafka
             IConsumer<TKey, TValue> consumer;
             if (consumerObject != null)
             {
-                consumer = (IConsumer<TKey, TValue>)_consumers[consumerName];
+                consumer = (IConsumer<TKey, TValue>)consumerObject;
             }
             else
             {

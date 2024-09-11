@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 
@@ -6,6 +7,8 @@ namespace Siban.Kafka.Abstractions
 {
     public interface IPublishMessageBus
     {        
+        IEnumerable<string> BootstrapServers { get; }
+        
         void PublishMessageValue<TValue>(
             string topic,
             TValue value,

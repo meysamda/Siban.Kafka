@@ -8,6 +8,8 @@ namespace Siban.Kafka.Abstractions
 {    
     public interface ISubscriptionMessageBus
     {
+        IEnumerable<string> BootstrapServers { get; }
+        
         Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
             Func<TValue, Task<bool>> handleMethod,
