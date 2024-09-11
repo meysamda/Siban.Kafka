@@ -30,7 +30,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<TValue, Task<bool>> handleMethod,
+            Func<TValue, CancellationToken, Task<bool>> handleMethod,
             Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -46,7 +46,7 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        var succeed = await handleMethod(consumeResult.Message.Value);
+                        var succeed = await handleMethod(consumeResult.Message.Value, cancellationToken);
 
                         if (succeed && options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                         {
@@ -59,7 +59,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<Message<TKey, TValue>, Task<bool>> handleMethod,
+            Func<Message<TKey, TValue>, CancellationToken, Task<bool>> handleMethod,
             Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -75,7 +75,7 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        var succeed = await handleMethod(consumeResult.Message);
+                        var succeed = await handleMethod(consumeResult.Message, cancellationToken);
 
                         if (succeed && options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                         {

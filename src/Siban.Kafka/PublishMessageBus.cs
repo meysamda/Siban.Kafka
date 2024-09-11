@@ -4,6 +4,7 @@ using Siban.Kafka.Abstractions;
 using Confluent.Kafka;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 namespace Siban.Kafka
 {
     public class PublishMessageBus : IPublishMessageBus
@@ -59,24 +60,26 @@ namespace Siban.Kafka
         public Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
             TValue value,
-            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null)
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var message = new Message<string, TValue> { Value = value };
             var producer = GetProducer(options);
 
-            return producer.ProduceAsync(topic, message);
+            return producer.ProduceAsync(topic, message, cancellationToken);
         }
 
         public Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
             string topic,
             Message<TKey, TValue> message,
-            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
         {
             var options = GetPublishOptions(defaultOptionsModifier);
             var producer = GetProducer(options);
 
-            return producer.ProduceAsync(topic, message);
+            return producer.ProduceAsync(topic, message, cancellationToken);
         }
 
         // ----------        
