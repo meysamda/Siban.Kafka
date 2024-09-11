@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 
@@ -26,11 +27,13 @@ namespace Siban.Kafka.Abstractions
         Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
             TValue message,
-            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null);
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default);
 
         Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
             string topic,
             Message<TKey, TValue> message,
-            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null);
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -54,24 +54,26 @@ namespace Siban.Kafka
         public Task<DeliveryResult<string, TValue>> PublishMessageValueAsync<TValue>(
             string topic,
             TValue value,
-            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null)
+            Action<IPublishOptions<string, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
         {
-            return _publishMessageBus.PublishMessageValueAsync(topic, value, defaultOptionsModifier);
+            return _publishMessageBus.PublishMessageValueAsync(topic, value, defaultOptionsModifier, cancellationToken);
         }
 
         public Task<DeliveryResult<TKey, TValue>> PublishMessageAsync<TKey, TValue>(
             string topic,
             Message<TKey, TValue> message,
-            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null)
+            Action<IPublishOptions<TKey, TValue>> defaultOptionsModifier = null,
+            CancellationToken cancellationToken = default)
         {
-            return _publishMessageBus.PublishMessageAsync(topic, message, defaultOptionsModifier);
+            return _publishMessageBus.PublishMessageAsync(topic, message, defaultOptionsModifier, cancellationToken);
         }
 
         // ==========
 
         public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<TValue, Task<bool>> handleMethod,
+            Func<TValue, CancellationToken, Task<bool>> handleMethod,
             Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -80,7 +82,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<Message<TKey, TValue>, Task<bool>> messageProcessor,
+            Func<Message<TKey, TValue>, CancellationToken, Task<bool>> messageProcessor,
             Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
