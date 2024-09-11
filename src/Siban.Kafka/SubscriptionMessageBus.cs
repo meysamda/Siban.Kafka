@@ -30,7 +30,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageValueAsync<TValue>(
             IEnumerable<string> topics,
-            Func<TValue, Task> handleMethod,
+            Func<TValue, Task<bool>> handleMethod,
             Action<ISubscribeOptions<string, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -46,9 +46,9 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        await handleMethod(consumeResult.Message.Value);
+                        var succeed = await handleMethod(consumeResult.Message.Value);
 
-                        if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
+                        if (succeed && options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                         {
                             consumer.Commit();
                         }
@@ -59,7 +59,7 @@ namespace Siban.Kafka
 
         public Task SubscribeForMessageAsync<TKey, TValue>(
             IEnumerable<string> topics,
-            Func<Message<TKey, TValue>, Task> handleMethod,
+            Func<Message<TKey, TValue>, Task<bool>> handleMethod,
             Action<ISubscribeOptions<TKey, TValue>> defaultOptionsModifier = null,
             CancellationToken cancellationToken = default)
         {
@@ -75,9 +75,9 @@ namespace Siban.Kafka
                     var consumeResult = consumer.Consume(cancellationToken);
                     if (consumeResult != null && !consumeResult.IsPartitionEOF)
                     {
-                        await handleMethod(consumeResult.Message);
+                        var succeed = await handleMethod(consumeResult.Message);
 
-                        if (options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
+                        if (succeed && options.ConsumerConfig.EnableAutoCommit.HasValue && !options.ConsumerConfig.EnableAutoCommit.Value)
                         {
                             consumer.Commit();
                         }
